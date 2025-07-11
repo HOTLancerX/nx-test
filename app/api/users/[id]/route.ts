@@ -3,12 +3,20 @@ import { connectToDatabase } from "@/lib/db"
 import { requireAdminAuth, hashPassword } from "@/lib/auth"
 import { ObjectId } from "mongodb"
 
-export async function GET(request: NextRequest, { params }: { params: { id: string } }) {
+function extractIdFromUrl(url: string): string | null {
+  const match = url.match(/\/users\/([^\/\?]+)/)
+  return match ? match[1] : null
+}
+
+export async function GET(req: NextRequest) {
   try {
     await requireAdminAuth()
 
+    const id = extractIdFromUrl(req.url)
+    if (!id) return NextResponse.json({ message: "Missing user ID" }, { status: 400 })
+
     const { db } = await connectToDatabase()
-    const user = await db.collection("nx_users").findOne({ _id: new ObjectId(params.id) })
+    const user = await db.collection("nx_users").findOne({ _id: new ObjectId(id) })
 
     if (!user) {
       return NextResponse.json({ message: "User not found" }, { status: 404 })
@@ -17,7 +25,7 @@ export async function GET(request: NextRequest, { params }: { params: { id: stri
     return NextResponse.json({
       ...user,
       _id: user._id.toString(),
-      password: undefined, // Don't send password
+      password: undefined,
     })
   } catch (error) {
     console.error("Get user error:", error)
@@ -25,11 +33,14 @@ export async function GET(request: NextRequest, { params }: { params: { id: stri
   }
 }
 
-export async function PUT(request: NextRequest, { params }: { params: { id: string } }) {
+export async function PUT(req: NextRequest) {
   try {
     await requireAdminAuth()
 
-    const userData = await request.json()
+    const id = extractIdFromUrl(req.url)
+    if (!id) return NextResponse.json({ message: "Missing user ID" }, { status: 400 })
+
+    const userData = await req.json()
     const { username, email, password, phone, type, status, images, gallery } = userData
 
     if (!username || !email) {
@@ -38,28 +49,24 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
 
     const { db } = await connectToDatabase()
 
-    // Check if user exists
-    const existingUser = await db.collection("nx_users").findOne({ _id: new ObjectId(params.id) })
+    const existingUser = await db.collection("nx_users").findOne({ _id: new ObjectId(id) })
     if (!existingUser) {
       return NextResponse.json({ message: "User not found" }, { status: 404 })
     }
 
-    // Check if email is taken by another user
     const emailTaken = await db.collection("nx_users").findOne({
       email,
-      _id: { $ne: new ObjectId(params.id) },
+      _id: { $ne: new ObjectId(id) },
     })
     if (emailTaken) {
       return NextResponse.json({ message: "Email is already taken by another user" }, { status: 400 })
     }
 
-    // Create slug from username
     const slug = username
       .toLowerCase()
       .replace(/[^a-z0-9]/g, "-")
       .replace(/-+/g, "-")
 
-    // Prepare update data
     const updateData: any = {
       username,
       slug,
@@ -72,41 +79,37 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
       updatedAt: new Date(),
     }
 
-    // Hash password if provided
     if (password) {
       updateData.password = await hashPassword(password)
     }
 
-    await db.collection("nx_users").updateOne({ _id: new ObjectId(params.id) }, { $set: updateData })
+    await db.collection("nx_users").updateOne({ _id: new ObjectId(id) }, { $set: updateData })
 
-    return NextResponse.json({
-      message: "User updated successfully",
-    })
+    return NextResponse.json({ message: "User updated successfully" })
   } catch (error) {
     console.error("Update user error:", error)
     return NextResponse.json({ message: "Internal server error" }, { status: 500 })
   }
 }
 
-export async function DELETE(request: NextRequest, { params }: { params: { id: string } }) {
+export async function DELETE(req: NextRequest) {
   try {
     await requireAdminAuth()
 
+    const id = extractIdFromUrl(req.url)
+    if (!id) return NextResponse.json({ message: "Missing user ID" }, { status: 400 })
+
     const { db } = await connectToDatabase()
 
-    // Check if user exists
-    const existingUser = await db.collection("nx_users").findOne({ _id: new ObjectId(params.id) })
+    const existingUser = await db.collection("nx_users").findOne({ _id: new ObjectId(id) })
     if (!existingUser) {
       return NextResponse.json({ message: "User not found" }, { status: 404 })
     }
 
-    // Delete user and related meta data
-    await db.collection("nx_users").deleteOne({ _id: new ObjectId(params.id) })
-    await db.collection("nx_users_meta").deleteMany({ nx_users: new ObjectId(params.id) })
+    await db.collection("nx_users").deleteOne({ _id: new ObjectId(id) })
+    await db.collection("nx_users_meta").deleteMany({ nx_users: new ObjectId(id) })
 
-    return NextResponse.json({
-      message: "User deleted successfully",
-    })
+    return NextResponse.json({ message: "User deleted successfully" })
   } catch (error) {
     console.error("Delete user error:", error)
     return NextResponse.json({ message: "Internal server error" }, { status: 500 })
