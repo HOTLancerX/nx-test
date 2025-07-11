@@ -22,7 +22,7 @@ export async function GET(request: Request, { params }: { params: { id: string }
     return NextResponse.json({
       ...category,
       _id: category._id.toString(),
-      parent_id: category.parent_id?.toString() || null
+      parent_id: (category.parent_id as ObjectId)?.toString() || null
     })
   } catch (error) {
     console.error("Category GET error:", error)

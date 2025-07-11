@@ -56,16 +56,6 @@ export default function HomePage() {
               <h1 className="text-xl font-semibold text-gray-900">{settings.logo || "NX CMS"}</h1>
             </div>
             <div className="flex items-center space-x-4">
-              {settings.siteurl && (
-                <a
-                  href={settings.siteurl}
-                  className="text-blue-600 hover:text-blue-800"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                >
-                  Visit Site
-                </a>
-              )}
               {user ? (
                 <>
                   <span className="text-gray-700">Welcome, {user.username}</span>
