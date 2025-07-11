@@ -9,13 +9,14 @@ interface User {
   _id: string
   username: string
   email: string
-  password: string
+  password?: string
   phone: string
   type: "admin" | "editor" | "user"
   status: boolean
   images: string
   gallery: string[]
 }
+
 
 export default function EditUserPage() {
   const router = useRouter()
@@ -64,7 +65,7 @@ export default function EditUserPage() {
     try {
       const updateData = { ...formData }
       if (!updateData.password) {
-        delete updateData.password // Don't update password if empty
+        delete updateData.password
       }
 
       const response = await fetch(`/api/users/${params.id}`, {
