@@ -11,12 +11,14 @@
     "seed-settings": "node scripts/defaultsettings.js"
   },
   "dependencies": {
-    "mongodb": "^6.0.0",
     "bcryptjs": "^2.4.3",
     "jsonwebtoken": "^9.0.0",
+    "mongodb": "^6.0.0",
     "next": "15.3.5",
     "react": "^19.0.0",
-    "react-dom": "^19.0.0"
+    "react-dom": "^19.0.0",
+    "suneditor": "^2.47.6",
+    "suneditor-react": "^3.6.1"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",

@@ -1,6 +1,7 @@
 "use client"
 import type React from "react"
 import PrivateLayout from "@/components/private-layout"
+import Link from "next/link"
 
 export default function RootLayout({
   children,
@@ -17,18 +18,36 @@ export default function RootLayout({
                 <h1 className="text-xl font-semibold text-gray-900">NX Admin Panel</h1>
               </div>
               <div className="flex items-center space-x-4">
-                <a
+                <Link
+                  href="/nx-admin/post"
+                  className="text-gray-700 hover:text-gray-900 px-3 py-2 rounded-md text-sm font-medium"
+                >
+                  Post
+                </Link>
+                <Link
+                  href="/nx-admin/post/category"
+                  className="text-gray-700 hover:text-gray-900 px-3 py-2 rounded-md text-sm font-medium"
+                >
+                  Category
+                </Link>
+                <Link
+                  href="/nx-admin/page"
+                  className="text-gray-700 hover:text-gray-900 px-3 py-2 rounded-md text-sm font-medium"
+                >
+                  Page
+                </Link>
+                <Link
                   href="/nx-admin/users"
                   className="text-gray-700 hover:text-gray-900 px-3 py-2 rounded-md text-sm font-medium"
                 >
                   Users
-                </a>
-                <a
+                </Link>
+                <Link
                   href="/nx-admin/settings"
                   className="text-gray-700 hover:text-gray-900 px-3 py-2 rounded-md text-sm font-medium"
                 >
                   Settings
-                </a>
+                </Link>
                 <button
                   onClick={() => {
                     document.cookie = "auth-token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;"
