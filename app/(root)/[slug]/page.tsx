@@ -3,11 +3,11 @@ import type { NxPost } from '@/schema/nx_posts'
 import type { Metadata } from 'next'
 import { Settings } from "@/lib/settings"
 
-export async function generateMetadata({
-  params,
-}: {
+interface PageProps {
   params: { slug: string }
-}): Promise<Metadata> {
+}
+
+export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const settings = await Settings()
   const { db } = await connectToDatabase()
   const page = await db.collection<NxPost>('nx_posts').findOne({ 
@@ -34,7 +34,7 @@ export async function generateMetadata({
   }
 }
 
-export default async function Page({ params }: { params: { slug: string } }) {
+export default async function Page({ params }: PageProps) {
   const { db } = await connectToDatabase()
   const page = await db.collection<NxPost>('nx_posts').findOne({ 
     slug: params.slug,
@@ -42,7 +42,7 @@ export default async function Page({ params }: { params: { slug: string } }) {
     status: 'publish'
   })
 
-  if (!page) return <div>Page not found</div>
+  if (!page) return <div className="text-center text-red-500 py-10">Page not found</div>
 
   return (
     <article className="max-w-4xl mx-auto py-8 px-4">
