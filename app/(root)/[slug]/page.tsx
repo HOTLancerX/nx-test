@@ -3,16 +3,15 @@ import type { NxPost } from '@/schema/nx_posts'
 import type { Metadata } from 'next'
 import { Settings } from "@/lib/settings"
 import { notFound } from 'next/navigation'
-import Image from 'next/image'
 
-type Props = {
+export async function generateMetadata({
+  params,
+}: {
   params: { slug: string }
-}
-
-export async function generateMetadata({ params }: Props): Promise<Metadata> {
+}): Promise<Metadata> {
   const settings = await Settings()
   const { db } = await connectToDatabase()
-  const page = await db.collection<NxPost>('nx_posts').findOne({ 
+  const page = await db.collection<NxPost>('nx_posts').findOne({
     slug: params.slug,
     type: 'page',
     status: 'publish'
@@ -40,9 +39,13 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   }
 }
 
-export default async function Page({ params }: Props) {
+export default async function Page({
+  params,
+}: {
+  params: { slug: string }
+}) {
   const { db } = await connectToDatabase()
-  const page = await db.collection<NxPost>('nx_posts').findOne({ 
+  const page = await db.collection<NxPost>('nx_posts').findOne({
     slug: params.slug,
     type: 'page',
     status: 'publish'
@@ -61,19 +64,17 @@ export default async function Page({ params }: Props) {
         )}
       </header>
 
-      <div 
-        className="prose max-w-none" 
-        dangerouslySetInnerHTML={{ __html: page.content }} 
+      <div
+        className="prose max-w-none"
+        dangerouslySetInnerHTML={{ __html: page.content }}
       />
 
       {page.gallery && page.gallery.length > 0 && (
         <div className="mt-12 grid grid-cols-2 md:grid-cols-3 gap-4">
           {page.gallery.map((image, index) => (
-            <Image
+            <img
               key={index}
               src={image}
-              width={800}
-              height={600}
               alt={`${page.title} gallery image ${index + 1}`}
               className="rounded-lg shadow"
             />
