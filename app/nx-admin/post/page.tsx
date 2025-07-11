@@ -7,6 +7,7 @@ import { useRouter } from "next/navigation"
 interface Post {
   _id: string
   title: string
+  slug: string
   status: string
   date: string
 }
@@ -104,6 +105,13 @@ export default function PostList() {
                   {new Date(post.date).toLocaleDateString()}
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                  <Link 
+                    href={`/blog/${post.slug}`}
+                    target="_blank"
+                    className="text-blue-600 hover:text-blue-900 mr-4"
+                  >
+                    View
+                  </Link>
                   <Link 
                     href={`/nx-admin/post/${post._id}`} 
                     className="text-blue-600 hover:text-blue-900 mr-4"

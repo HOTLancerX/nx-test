@@ -72,6 +72,13 @@ export default function CategoryList() {
             </div>
             <div className="space-x-2">
               <Link 
+                href={`/category/${category.slug}`}
+                target="_blank"
+                className="text-blue-600 hover:text-blue-900 mr-4"
+              >
+                View
+              </Link>
+              <Link 
                 href={`/nx-admin/post/category/${category._id}`}
                 className="text-blue-600 hover:text-blue-900 px-2 py-1 rounded hover:bg-blue-50"
               >
