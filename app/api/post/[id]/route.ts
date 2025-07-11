@@ -1,24 +1,27 @@
-//app/api/post/[id]/route.ts
-import { NextResponse } from "next/server"
+import { NextRequest, NextResponse } from "next/server"
 import { connectToDatabase } from "@/lib/db"
 import { requireAdminAuth } from "@/lib/auth"
 import { NxPostInput } from "@/schema/nx_posts"
 import { ObjectId } from "mongodb"
 
-export async function GET(request: Request, { params }: { params: { id: string } }) {
+// Extract the ID from the request URL
+function getIdFromUrl(url: string): string | null {
+  const match = url.match(/\/post\/([^\/\?]+)/)
+  return match ? match[1] : null
+}
+
+export async function GET(req: NextRequest) {
   try {
     await requireAdminAuth()
-    
+
+    const id = getIdFromUrl(req.url)
+    if (!id) return NextResponse.json({ message: "Missing ID" }, { status: 400 })
+
     const { db } = await connectToDatabase()
-    const post = await db.collection("nx_posts").findOne({ 
-      _id: new ObjectId(params.id) 
-    })
+    const post = await db.collection("nx_posts").findOne({ _id: new ObjectId(id) })
 
     if (!post) {
-      return NextResponse.json(
-        { message: "Post not found" },
-        { status: 404 }
-      )
+      return NextResponse.json({ message: "Post not found" }, { status: 404 })
     }
 
     return NextResponse.json({
@@ -30,33 +33,26 @@ export async function GET(request: Request, { params }: { params: { id: string }
       })) || []
     })
   } catch (error) {
-    return NextResponse.json(
-      { message: "Internal server error" },
-      { status: 500 }
-    )
+    return NextResponse.json({ message: "Internal server error" }, { status: 500 })
   }
 }
 
-export async function PUT(request: Request, { params }: { params: { id: string } }) {
+export async function PUT(req: NextRequest) {
   try {
     await requireAdminAuth()
-    
-    const postData: NxPostInput = await request.json()
-    
+
+    const id = getIdFromUrl(req.url)
+    if (!id) return NextResponse.json({ message: "Missing ID" }, { status: 400 })
+
+    const postData: NxPostInput = await req.json()
     if (!postData.title) {
-      return NextResponse.json(
-        { message: "Title is required" },
-        { status: 400 }
-      )
+      return NextResponse.json({ message: "Title is required" }, { status: 400 })
     }
 
     const { db } = await connectToDatabase()
 
-    // Generate new slug if title changed
-    const existingPost = await db.collection("nx_posts").findOne({ 
-      _id: new ObjectId(params.id) 
-    })
-    
+    const existingPost = await db.collection("nx_posts").findOne({ _id: new ObjectId(id) })
+
     let slug = existingPost?.slug
     if (existingPost?.title !== postData.title) {
       slug = postData.title
@@ -64,17 +60,13 @@ export async function PUT(request: Request, { params }: { params: { id: string }
         .trim()
         .replace(/[^a-z0-9]+/g, '-')
         .replace(/(^-|-$)/g, '')
-      
-      // Check if new slug exists for another post
-      const slugExists = await db.collection("nx_posts").findOne({ 
-        slug, 
-        _id: { $ne: new ObjectId(params.id) }
+
+      const slugExists = await db.collection("nx_posts").findOne({
+        slug,
+        _id: { $ne: new ObjectId(id) }
       })
       if (slugExists) {
-        return NextResponse.json(
-          { message: "A post with this title already exists" },
-          { status: 400 }
-        )
+        return NextResponse.json({ message: "A post with this title already exists" }, { status: 400 })
       }
     }
 
@@ -88,43 +80,29 @@ export async function PUT(request: Request, { params }: { params: { id: string }
       })) || []
     }
 
-    await db.collection("nx_posts").updateOne(
-      { _id: new ObjectId(params.id) },
-      { $set: updateData }
-    )
+    await db.collection("nx_posts").updateOne({ _id: new ObjectId(id) }, { $set: updateData })
 
-    return NextResponse.json({
-      message: "Post updated successfully",
-    })
+    return NextResponse.json({ message: "Post updated successfully" })
   } catch (error) {
     console.error("Error updating post:", error)
-    return NextResponse.json(
-      { message: "Internal server error" },
-      { status: 500 }
-    )
+    return NextResponse.json({ message: "Internal server error" }, { status: 500 })
   }
 }
 
-export async function DELETE(request: Request, { params }: { params: { id: string } }) {
+export async function DELETE(req: NextRequest) {
   try {
     await requireAdminAuth()
-    
+
+    const id = getIdFromUrl(req.url)
+    if (!id) return NextResponse.json({ message: "Missing ID" }, { status: 400 })
+
     const { db } = await connectToDatabase()
 
-    await db.collection("nx_posts").deleteOne({ 
-      _id: new ObjectId(params.id) 
-    })
-    await db.collection("nx_posts_meta").deleteMany({ 
-      nx_posts: new ObjectId(params.id) 
-    })
+    await db.collection("nx_posts").deleteOne({ _id: new ObjectId(id) })
+    await db.collection("nx_posts_meta").deleteMany({ nx_posts: new ObjectId(id) })
 
-    return NextResponse.json({
-      message: "Post deleted successfully",
-    })
+    return NextResponse.json({ message: "Post deleted successfully" })
   } catch (error) {
-    return NextResponse.json(
-      { message: "Internal server error" },
-      { status: 500 }
-    )
+    return NextResponse.json({ message: "Internal server error" }, { status: 500 })
   }
 }
