@@ -1,1 +1,6 @@
+@import url('https://fonts.maateen.me/solaiman-lipi/font.css');
 @import "tailwindcss";
+
+body {
+    font-family: 'SolaimanLipi', sans-serif;
+}

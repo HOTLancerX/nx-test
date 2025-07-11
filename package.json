@@ -18,7 +18,8 @@
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
     "suneditor": "^2.47.6",
-    "suneditor-react": "^3.6.1"
+    "suneditor-react": "^3.6.1",
+    "xml2js": "^0.6.2"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",
@@ -27,6 +28,7 @@
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "@types/xml2js": "^0.4.14",
     "tailwindcss": "^4",
     "typescript": "^5"
   }
