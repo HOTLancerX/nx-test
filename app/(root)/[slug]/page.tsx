@@ -2,12 +2,14 @@ import { connectToDatabase } from '@/lib/db'
 import type { NxPost } from '@/schema/nx_posts'
 import type { Metadata } from 'next'
 import { Settings } from "@/lib/settings"
+import { notFound } from 'next/navigation'
+import Image from 'next/image'
 
-interface PageProps {
+type Props = {
   params: { slug: string }
 }
 
-export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const settings = await Settings()
   const { db } = await connectToDatabase()
   const page = await db.collection<NxPost>('nx_posts').findOne({ 
@@ -16,7 +18,11 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     status: 'publish'
   })
 
-  if (!page) return {}
+  if (!page) {
+    return {
+      title: 'Page Not Found',
+    }
+  }
 
   return {
     title: `${page.title} | ${settings.logo || "NX CMS"}`,
@@ -26,7 +32,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
       description: page.content.substring(0, 160),
       images: page.images ? [{ url: page.images }] : [],
       type: 'article',
-      publishedTime: page.date.toISOString(),
+      publishedTime: page.date?.toISOString?.(),
     },
     alternates: {
       canonical: `${process.env.NEXT_PUBLIC_APP_URL}/${params.slug}`,
@@ -34,7 +40,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   }
 }
 
-export default async function Page({ params }: PageProps) {
+export default async function Page({ params }: Props) {
   const { db } = await connectToDatabase()
   const page = await db.collection<NxPost>('nx_posts').findOne({ 
     slug: params.slug,
@@ -42,7 +48,7 @@ export default async function Page({ params }: PageProps) {
     status: 'publish'
   })
 
-  if (!page) return <div className="text-center text-red-500 py-10">Page not found</div>
+  if (!page) return notFound()
 
   return (
     <article className="max-w-4xl mx-auto py-8 px-4">
@@ -63,9 +69,11 @@ export default async function Page({ params }: PageProps) {
       {page.gallery && page.gallery.length > 0 && (
         <div className="mt-12 grid grid-cols-2 md:grid-cols-3 gap-4">
           {page.gallery.map((image, index) => (
-            <img
+            <Image
               key={index}
               src={image}
+              width={800}
+              height={600}
               alt={`${page.title} gallery image ${index + 1}`}
               className="rounded-lg shadow"
             />
@@ -81,7 +89,7 @@ export default async function Page({ params }: PageProps) {
             "@type": "Article",
             "headline": page.title,
             "description": page.content.substring(0, 160),
-            "datePublished": page.date.toISOString(),
+            "datePublished": page.date?.toISOString(),
             "image": page.images ? [page.images] : [],
           }),
         }}
