@@ -225,13 +225,34 @@ export default function LayoutForm({ initialData, onSuccess }: LayoutFormProps) 
 }
 
 // Component for News settings
-const NewsSettingsForm = ({ 
-  settings, 
-  onChange 
-}: { 
-  settings: NewsSettings, 
-  onChange: (settings: NewsSettings) => void 
+const NewsSettingsForm = ({
+  settings,
+  onChange,
+}: {
+  settings: NewsSettings;
+  onChange: (settings: NewsSettings) => void;
 }) => {
+  const [categories, setCategories] = useState<{ _id: string; title: string }[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchCategories = async () => {
+      try {
+        const response = await fetch("/api/category?type=post");
+        const data = await response.json();
+        if (data?.categories) {
+          setCategories(data.categories);
+        }
+      } catch (error) {
+        console.error("Error fetching categories:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchCategories();
+  }, []);
+
   return (
     <div className="mt-4 space-y-4">
       <div>
@@ -244,6 +265,25 @@ const NewsSettingsForm = ({
           onChange={(e) => onChange({ ...settings, title: e.target.value })}
           className="w-full px-3 py-2 border border-gray-300 rounded-md"
         />
+      </div>
+
+      <div>
+        <label className="block text-sm font-medium text-gray-700 mb-1">
+          Category *
+        </label>
+        <select
+          value={settings.categoryId || ""}
+          onChange={(e) => onChange({ ...settings, categoryId: e.target.value })}
+          className="w-full px-3 py-2 border border-gray-300 rounded-md"
+          required
+        >
+          <option value="">Select a category</option>
+          {categories.map((cat) => (
+            <option key={cat._id} value={cat._id}>
+              {cat.title}
+            </option>
+          ))}
+        </select>
       </div>
 
       <div>
@@ -284,7 +324,6 @@ const NewsSettingsForm = ({
             className="w-full px-3 py-2 border border-gray-300 rounded-md"
           />
         </div>
-
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">
             Mobile Grid
@@ -300,6 +339,7 @@ const NewsSettingsForm = ({
     </div>
   );
 };
+
 
 // Component for Banner settings
 const BannerSettingsForm = ({ 
