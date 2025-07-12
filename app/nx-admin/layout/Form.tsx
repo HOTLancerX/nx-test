@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import dynamic from "next/dynamic";
 import { NewsSettings, BannerSettings, ContentSettings, LayoutItem, BannerItem } from "@/schema/nx_layouts";
+import 'suneditor/dist/css/suneditor.min.css'
 
 const SunEditor = dynamic(() => import("suneditor-react"), {
   ssr: false,
@@ -128,7 +129,7 @@ export default function LayoutForm({ initialData, onSuccess }: LayoutFormProps) 
           <div key={item.id} className="border p-4 rounded-lg">
             <h3 className="text-lg font-medium capitalize">{item.type} Section</h3>
             
-            <div className="mt-2 grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="mt-2 grid grid-cols-1 md:grid-cols-3 gap-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   Position
@@ -150,12 +151,12 @@ export default function LayoutForm({ initialData, onSuccess }: LayoutFormProps) 
                   onChange={(e) => updateItem(item.id, { desktopWidth: e.target.value as any })}
                   className="w-full px-3 py-2 border border-gray-300 rounded-md"
                 >
-                  <option value="w-full">Full Width</option>
-                  <option value="w-1/2">Half Width</option>
-                  <option value="w-1/3">One Third</option>
-                  <option value="w-2/3">Two Thirds</option>
-                  <option value="w-1/4">One Quarter</option>
-                  <option value="w-3/4">Three Quarters</option>
+                  <option value="md:w-full">Full Width</option>
+                  <option value="md:w-1/2">Half Width</option>
+                  <option value="md:w-1/3">One Third</option>
+                  <option value="md:w-2/3">Two Thirds</option>
+                  <option value="md:w-1/4">One Quarter</option>
+                  <option value="md:w-3/4">Three Quarters</option>
                 </select>
               </div>
 
@@ -238,13 +239,19 @@ const NewsSettingsForm = ({
   useEffect(() => {
     const fetchCategories = async () => {
       try {
-        const response = await fetch("/api/category?type=post");
+        const response = await fetch("/api/category?type=post_category", {
+          credentials: "include", // Ensure cookies are sent
+        });
         const data = await response.json();
-        if (data?.categories) {
+
+        if (Array.isArray(data.categories)) {
           setCategories(data.categories);
+        } else {
+          setCategories([]);
         }
       } catch (error) {
         console.error("Error fetching categories:", error);
+        setCategories([]);
       } finally {
         setLoading(false);
       }

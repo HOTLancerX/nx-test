@@ -1,6 +1,7 @@
 // components/layout/News.tsx
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import Image from "next/image";
 
 interface NewsProps {
   settings: {
@@ -63,12 +64,25 @@ export default function News({ settings }: NewsProps) {
         <div className={`grid grid-cols-1 md:grid-cols-${settings.desktopGrid} gap-4`}>
           {posts.map(post => (
             <div key={post._id} className="border rounded-lg overflow-hidden">
-              {post.images && (
-                <img 
-                  src={post.images} 
-                  alt={post.title} 
-                  className="w-full h-48 object-cover"
+              {post.images ? (
+                <Image
+                  src={post.images || "/placeholder.svg"}
+                  alt={post.title}
+                  width={800}
+                  height={300}
+                  className="w-full h-auto rounded-lg"
                 />
+              ) : (
+                <div className="w-full h-32 bg-gray-200 rounded-lg flex items-center justify-center">
+                  <svg className="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
+                    />
+                  </svg>
+                </div>
               )}
               <div className="p-4">
                 <h3 className="font-semibold text-lg mb-2">
@@ -106,12 +120,25 @@ export default function News({ settings }: NewsProps) {
                     {posts[0].content.replace(/<[^>]*>/g, '').substring(0, 200)}...
                   </p>
                 </div>
-                {posts[0].images && (
-                  <img 
-                    src={posts[0].images} 
-                    alt={posts[0].title} 
-                    className="w-full h-48 object-cover rounded"
+                {posts[0].images ? (
+                  <Image
+                    src={posts[0].images || "/placeholder.svg"}
+                    alt={posts[0].title}
+                    width={800}
+                    height={300}
+                    className="w-full h-auto rounded-lg"
                   />
+                ) : (
+                  <div className="w-full h-32 bg-gray-200 rounded-lg flex items-center justify-center">
+                    <svg className="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
+                      />
+                    </svg>
+                  </div>
                 )}
               </div>
             </div>
@@ -121,12 +148,25 @@ export default function News({ settings }: NewsProps) {
             <div className={`grid grid-cols-1 md:grid-cols-${settings.desktopGrid} gap-4`}>
               {posts.slice(1).map(post => (
                 <div key={post._id} className="border rounded-lg overflow-hidden">
-                  {post.images && (
-                    <img 
-                      src={post.images} 
-                      alt={post.title} 
-                      className="w-full h-32 object-cover"
+                  {post.images ? (
+                    <Image
+                      src={post.images || "/placeholder.svg"}
+                      alt={post.title}
+                      width={800}
+                      height={300}
+                      className="w-full h-auto rounded-lg"
                     />
+                  ) : (
+                    <div className="w-full h-32 bg-gray-200 rounded-lg flex items-center justify-center">
+                      <svg className="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
+                        />
+                      </svg>
+                    </div>
                   )}
                   <div className="p-3">
                     <h3 className="font-semibold mb-1">
@@ -163,12 +203,25 @@ export default function News({ settings }: NewsProps) {
                     {posts[0].content.replace(/<[^>]*>/g, '').substring(0, 200)}...
                   </p>
                 </div>
-                {posts[0].images && (
-                  <img 
-                    src={posts[0].images} 
-                    alt={posts[0].title} 
-                    className="w-full h-48 object-cover rounded"
+                {posts[0].images ? (
+                  <Image
+                    src={posts[0].images || "/placeholder.svg"}
+                    alt={posts[0].title}
+                    width={800}
+                    height={300}
+                    className="w-full h-auto rounded-lg"
                   />
+                ) : (
+                  <div className="w-full h-32 bg-gray-200 rounded-lg flex items-center justify-center">
+                    <svg className="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
+                      />
+                    </svg>
+                  </div>
                 )}
               </div>
             </div>
@@ -178,12 +231,25 @@ export default function News({ settings }: NewsProps) {
             <div className={`mb-6 grid grid-cols-1 md:grid-cols-${settings.desktopGrid} gap-4`}>
               {posts.slice(1, posts.length - 1).map(post => (
                 <div key={post._id} className="border rounded-lg overflow-hidden">
-                  {post.images && (
-                    <img 
-                      src={post.images} 
-                      alt={post.title} 
-                      className="w-full h-32 object-cover"
+                  {post.images ? (
+                    <Image
+                      src={post.images || "/placeholder.svg"}
+                      alt={post.title}
+                      width={800}
+                      height={300}
+                      className="w-full h-auto rounded-lg"
                     />
+                  ) : (
+                    <div className="w-full h-32 bg-gray-200 rounded-lg flex items-center justify-center">
+                      <svg className="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
+                        />
+                      </svg>
+                    </div>
                   )}
                   <div className="p-3">
                     <h3 className="font-semibold mb-1">
@@ -203,12 +269,25 @@ export default function News({ settings }: NewsProps) {
           {posts.length > 1 && (
             <div className="border-t pt-6">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {posts[posts.length - 1].images && (
-                  <img 
-                    src={posts[posts.length - 1].images} 
-                    alt={posts[posts.length - 1].title} 
-                    className="w-full h-48 object-cover rounded"
+                {posts[posts.length - 1].images ? (
+                  <Image
+                    src={posts[posts.length - 1].images || "/placeholder.svg"}
+                    alt={posts[posts.length - 1].title}
+                    width={800}
+                    height={300}
+                    className="w-full h-auto rounded-lg"
                   />
+                ) : (
+                  <div className="w-full h-32 bg-gray-200 rounded-lg flex items-center justify-center">
+                    <svg className="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
+                      />
+                    </svg>
+                  </div>
                 )}
                 <div>
                   <h3 className="font-semibold text-lg mb-2">
