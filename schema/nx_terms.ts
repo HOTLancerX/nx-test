@@ -2,8 +2,9 @@ import type { ObjectId } from "mongodb"
 
 export interface NxTerm {
   _id?: ObjectId
-  type: string
+  type: "post" | "product"
   title: string
+  layout: string
   slug: string
   images: string
   gallery: string[]
@@ -12,8 +13,9 @@ export interface NxTerm {
 }
 
 export interface NxTermInput {
-  type: string
+  type: "post" | "product"
   title: string
+  layout: string
   slug?: string
   images?: string
   gallery?: string[]

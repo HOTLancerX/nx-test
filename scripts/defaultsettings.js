@@ -1,6 +1,6 @@
 const { MongoClient } = require("mongodb")
 
-const MONGODB_URI = process.env.MONGODB_URI || "mongodb+srv://heraemt24:Z3V0hj8XHt26gn7n@cluster0.jn1hu.mongodb.net"
+const MONGODB_URI = process.env.MONGODB_URI || ""
 const DB_NAME = "nx_cms"
 
 async function createDefaultSettings() {

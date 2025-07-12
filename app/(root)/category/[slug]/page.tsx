@@ -8,6 +8,7 @@ import { notFound } from 'next/navigation'
 import Link from 'next/link'
 import { Settings } from "@/lib/settings"
 import Image from 'next/image'
+import Layout from '@/components/layout/Layout'
 
 export async function generateMetadata({
   params,
@@ -102,6 +103,9 @@ export default async function CategoryPage({
 
   return (
     <div className="max-w-6xl mx-auto py-8 px-4">
+      {category.layout && (
+        <Layout id={category.layout} />
+      )}
       <header className="mb-8">
         <h1 className="text-3xl font-bold mb-4">{category.title}</h1>
         {category.content && (

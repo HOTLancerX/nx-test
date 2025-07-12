@@ -7,6 +7,7 @@ export interface NxPost {
   date: Date
   content: string
   title: string
+  layout: string
   status: "publish" | "draft" | "trash"
   slug: string
   modified?: Date
@@ -22,6 +23,7 @@ export interface NxPost {
 
 export interface NxPostInput {
   title: string
+  layout: string
   content: string
   status: "publish" | "draft" | "trash"
   type: "post" | "page" | "product"

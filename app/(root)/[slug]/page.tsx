@@ -4,6 +4,7 @@ import type { NxPost } from '@/schema/nx_posts'
 import type { Metadata } from 'next'
 import { Settings } from '@/lib/settings'
 import { notFound } from 'next/navigation'
+import Layout from '@/components/layout/Layout'
 
 type Params = {
   params: {
@@ -54,6 +55,9 @@ export default async function Page({ params }: Params) {
 
   return (
     <article className="max-w-4xl mx-auto py-8 px-4">
+      {page.layout && (
+        <Layout id={page.layout} />
+      )}
       <header className="mb-8">
         <h1 className="text-4xl font-bold mb-4">{page.title}</h1>
         {page.date && (

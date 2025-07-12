@@ -49,6 +49,18 @@ export default function RootLayout({
                   Page
                 </Link>
                 <Link
+                  href="/nx-admin/feeds"
+                  className="text-gray-700 hover:text-gray-900 px-3 py-2 rounded-md text-sm font-medium"
+                >
+                  Feeds
+                </Link>
+                <Link
+                  href="/nx-admin/layout"
+                  className="text-gray-700 hover:text-gray-900 px-3 py-2 rounded-md text-sm font-medium"
+                >
+                  Layout
+                </Link>
+                <Link
                   href="/nx-admin/users"
                   className="text-gray-700 hover:text-gray-900 px-3 py-2 rounded-md text-sm font-medium"
                 >
