@@ -4,6 +4,7 @@ import Link from "next/link"
 import useSettings from "@/lib/useSettings"
 import Layout from "@/components/layout/Layout"
 
+
 interface User {
   id: string
   username: string
@@ -50,6 +51,7 @@ export default function HomePage() {
 
   return (
     <div>
+      
       {settings.homepage ? (
         <Layout id={settings.homepage} />
       ) : (
