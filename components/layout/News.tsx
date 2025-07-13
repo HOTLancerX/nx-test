@@ -1,4 +1,3 @@
-// components/layout/News.tsx
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
@@ -37,7 +36,8 @@ export default function News({ settings }: NewsProps) {
 
         const response = await fetch(url);
         const data = await response.json();
-        setPosts(data.posts);
+
+        setPosts(data.posts || []);
       } catch (error) {
         console.error("Error fetching posts:", error);
       } finally {
@@ -49,7 +49,11 @@ export default function News({ settings }: NewsProps) {
   }, [settings.categoryId, settings.postLimit]);
 
   if (loading) {
-    return <div>Loading posts...</div>;
+    return (
+      <div className="flex items-center justify-center my-6">
+        <div className="animate-spin rounded-full h-20 w-20 border-b-2 border-blue-600"></div>
+      </div>
+    );
   }
 
   if (posts.length === 0) {
@@ -61,7 +65,7 @@ export default function News({ settings }: NewsProps) {
       <h2 className="text-xl font-bold mb-4">{settings.title}</h2>
       
       {settings.style === 1 && (
-        <div className={`grid grid-cols-1 md:grid-cols-${settings.desktopGrid} gap-4`}>
+        <div className={`grid grid-cols-${settings.mobileGrid} md:grid-cols-${settings.desktopGrid} gap-4`}>
           {posts.map(post => (
             <div key={post._id} className="border rounded-lg overflow-hidden">
               {post.images ? (

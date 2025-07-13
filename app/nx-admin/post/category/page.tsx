@@ -68,7 +68,7 @@ export default function CategoryList() {
         <div key={category._id} className="ml-4">
           <div className="flex items-center py-2 border-b">
             <div className="flex-1">
-              {"- ".repeat(level)}{category.title} ({category.slug})
+              {"- ".repeat(level)}{category.title} ({category.slug}) ({category._id})
             </div>
             <div className="space-x-2">
               <Link 

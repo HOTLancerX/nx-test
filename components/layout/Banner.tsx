@@ -23,7 +23,11 @@ export default function Banner({ settings }: BannerProps) {
   const [loading, setLoading] = useState(false);
 
   if (loading) {
-    return <div>Loading banners...</div>;
+    return (
+      <div className="flex items-center justify-center my-6">
+        <div className="animate-spin rounded-full h-20 w-20 border-b-2 border-blue-600"></div>
+      </div>
+    );
   }
 
   if (banners.length === 0) {

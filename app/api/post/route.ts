@@ -13,18 +13,24 @@ export async function GET(request: Request) {
     const page = Number(searchParams.get("page") || 1)
     const limit = Number(searchParams.get("limit") || 10)
     const type = searchParams.get("type") || "post"
+    const categoryId = searchParams.get("category")
     const skip = (page - 1) * limit
 
     const { db } = await connectToDatabase()
 
+    const filter: any = { type }
+    if (categoryId) {
+      filter["taxonomy.term_id"] = new ObjectId(categoryId)
+    }
+
     const posts = await db.collection("nx_posts")
-      .find({ type })
+      .find(filter)
       .sort({ date: -1 })
       .skip(skip)
       .limit(limit)
       .toArray()
 
-    const totalPosts = await db.collection("nx_posts").countDocuments({ type })
+    const totalPosts = await db.collection("nx_posts").countDocuments(filter)
     const totalPages = Math.ceil(totalPosts / limit)
 
     return NextResponse.json({
@@ -43,6 +49,7 @@ export async function GET(request: Request) {
     )
   }
 }
+
 
 // Add this to complete the POST route
 export async function POST(request: Request) {
