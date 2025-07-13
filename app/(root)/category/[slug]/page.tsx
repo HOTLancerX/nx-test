@@ -21,7 +21,7 @@ export async function generateMetadata({
   // First try to find by slug
   let category = await db.collection<NxTerm>('nx_terms').findOne({ 
     slug: params.slug,
-    type: 'post_category'
+    type: 'post_category',
   })
 
   // If not found by slug, try as ObjectId
@@ -29,7 +29,7 @@ export async function generateMetadata({
     try {
       category = await db.collection<NxTerm>('nx_terms').findOne({ 
         _id: new ObjectId(params.slug),
-        type: 'post_category'
+        type: 'post_category',
       })
     } catch (e) {
       // Invalid ObjectId format
@@ -64,7 +64,7 @@ export default async function CategoryPage({
   // First try to find by slug
   let category = await db.collection<NxTerm>('nx_terms').findOne({ 
     slug: params.slug,
-    type: 'post_category'
+    type: 'post_category',
   })
 
   // If not found by slug, try as ObjectId
@@ -72,7 +72,7 @@ export default async function CategoryPage({
     try {
       category = await db.collection<NxTerm>('nx_terms').findOne({ 
         _id: new ObjectId(params.slug),
-        type: 'post_category'
+        type: 'post_category',
       })
     } catch (e) {
       // Invalid ObjectId format
@@ -102,7 +102,7 @@ export default async function CategoryPage({
   const totalPages = Math.ceil(totalPosts / perPage)
 
   return (
-    <div className="max-w-6xl mx-auto py-8 px-4">
+    <div className="container mx-auto py-8 px-2">
       {category.layout && (
         <Layout id={category.layout} />
       )}
@@ -116,32 +116,34 @@ export default async function CategoryPage({
         )}
       </header>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+      <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-6 mb-8">
         {posts.map((post) => (
-          <article key={post._id.toString()} className="border rounded-lg overflow-hidden hover:shadow-lg transition-shadow">
-            {post.images ? (
-              <Image
-                src={post.images || "/placeholder.svg"}
-                alt={post.title}
-                width={800}
-                height={300}
-                className="w-full h-auto rounded-lg"
-              />
-            ) : (
-              <div className="w-full h-32 bg-gray-200 rounded-lg flex items-center justify-center">
-                <svg className="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
-                  />
-                </svg>
-              </div>
-            )}
-            <div className="p-4">
-              <h2 className="text-xl font-semibold mb-2">
-                <Link href={`/blog/${post.slug}`} className="hover:underline">
+          <article key={post._id.toString()} className="rounded-lg overflow-hidden hover:shadow-lg transition-shadow">
+            <div className="w-full md:h-46 h-28 rounded-t-lg">
+              {post.images ? (
+                <Image
+                  src={post.images || "/placeholder.svg"}
+                  alt={post.title}
+                  width={800}
+                  height={300}
+                  className="w-full h-full object-cover"
+                />
+              ) : (
+                <div className="w-full h-32 bg-gray-200 rounded-lg flex items-center justify-center">
+                  <svg className="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
+                    />
+                  </svg>
+                </div>
+              )}
+            </div>
+            <div className="p-2">
+              <h2 className="font-semibold text-base mb-2">
+                <Link href={`/blog/${post.slug}`} className="hover:text-blue-600 line-clamp-2 hover:underline">
                   {post.title}
                 </Link>
               </h2>

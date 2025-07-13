@@ -2,7 +2,7 @@ import type { ObjectId } from "mongodb"
 
 export interface NxTerm {
   _id?: ObjectId
-  type: "post" | "product"
+  type: "post_category" | "product"
   title: string
   layout: string
   slug: string
@@ -13,7 +13,7 @@ export interface NxTerm {
 }
 
 export interface NxTermInput {
-  type: "post" | "product"
+  type: "post_category" | "product"
   title: string
   layout: string
   slug?: string
