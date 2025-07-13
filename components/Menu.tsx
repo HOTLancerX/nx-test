@@ -1,9 +1,8 @@
-"use client"
-
+"use client";
 import Link from "next/link";
 import { useMenu } from "@/lib/useMenu";
 import { usePathname } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 
 interface MenuProps {
   location?: string;
@@ -11,68 +10,115 @@ interface MenuProps {
   className?: string;
 }
 
-export default function Menu({ 
-  location = "main", 
+export default function Menu({
+  location = "main",
   style = "horizontal",
-  className = ""
+  className = "",
 }: MenuProps) {
   const { menuItems, loading } = useMenu(location);
   const pathname = usePathname();
-  const [activeMenu, setActiveMenu] = useState<string | null>(null);
 
-  if (loading) {
-    return <div className="flex space-x-4">Loading menu...</div>;
-  }
+  const [hoveredPath, setHoveredPath] = useState<string[]>([]);
 
-  const renderMenuItems = (items: any[], level = 0) => {
-    return items.map((item) => {
-      const isActive = pathname === item.url;
-      const hasChildren = item.children && item.children.length > 0;
-      const menuItemId = `menu-${item.title.toLowerCase().replace(/\s+/g, '-')}-${level}`;
+  if (loading) return <div>Loading menu...</div>;
 
-      return (
-        <li 
-          key={menuItemId}
-          className={`relative group ${style === "horizontal" ? "inline-block" : "block"}`}
-          onMouseEnter={() => setActiveMenu(menuItemId)}
-          onMouseLeave={() => setActiveMenu(null)}
-        >
-          <Link
-            href={item.url || "#"}
-            className={`px-4 py-2 block ${
-              isActive ? "text-blue-600 font-medium" : "text-gray-700 hover:text-blue-600"
-            } ${item.className || ""}`}
-            target={item.target || "_self"}
-          >
-            {item.title}
-            {hasChildren && (
-              <span className="ml-1">
-                <svg className="w-4 h-4 inline" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                </svg>
-              </span>
-            )}
-          </Link>
+  const handleMouseEnter = (path: string[], level: number) => {
+    const newPath = [...hoveredPath.slice(0, level), path[level]];
+    setHoveredPath(newPath);
+  };
 
-          {hasChildren && (
-            <ul 
-              className={`absolute ${
-                style === "horizontal" ? "top-full left-0" : "left-full top-0"
-              } min-w-[200px] bg-white shadow-lg rounded-md z-50 ${
-                activeMenu === menuItemId ? "block" : "hidden"
-              } group-hover:block`}
+  const handleMouseLeave = () => {
+    // মেনু থেকে বের হয়ে গেলে সব সাবমেনু গায়েব করো
+    setHoveredPath([]);
+  };
+
+  const renderMenuLevel = (
+    items: any[],
+    level: number,
+    path: string[] = []
+  ) => {
+    if (!items || items.length === 0) return null;
+
+    const isTopLevel = level === 0;
+    const isHorizontal = style === "horizontal";
+
+    return (
+      <ul
+        className={`z-50 bg-white shadow-lg rounded min-w-[200px]
+          ${isHorizontal
+              ? "top-full left-0 absolute"
+              : "absolute top-0 left-full"
+          }`}
+      >
+        {items.map((item, index) => {
+          const hasChildren = item.children && item.children.length > 0;
+          const currentPath = [...path, index.toString()];
+          const isActive = pathname === item.url;
+
+          return (
+            <li
+              key={item.title}
+              className="relative group"
+              onMouseEnter={() => handleMouseEnter(currentPath, level)}
             >
-              {renderMenuItems(item.children, level + 1)}
-            </ul>
-          )}
-        </li>
-      );
-    });
+              <Link
+                href={item.url || "#"}
+                className={`px-4 py-2 block whitespace-nowrap ${
+                  isActive
+                    ? "text-blue-600 font-semibold"
+                    : "text-gray-800 hover:text-blue-600"
+                }`}
+              >
+                {item.title}
+              </Link>
+
+              {hoveredPath[level] === currentPath[level] && hasChildren && (
+                renderMenuLevel(item.children, level + 1, currentPath)
+              )}
+            </li>
+          );
+        })}
+      </ul>
+    );
   };
 
   return (
-    <ul className={`flex ${style === "horizontal" ? "flex-row space-x-2" : "flex-col space-y-2"} ${className}`}>
-      {renderMenuItems(menuItems)}
-    </ul>
+    <div className="relative inline-block" onMouseLeave={handleMouseLeave}>
+      <ul
+        className={`${
+          style === "horizontal"
+            ? "flex flex-row space-x-4"
+            : "flex flex-col space-y-2"
+        } ${className}`}
+      >
+        {menuItems.map((item, index) => {
+          const hasChildren = item.children && item.children.length > 0;
+          const isActive = pathname === item.url;
+
+          return (
+            <li
+              key={item.title}
+              className="relative group"
+              onMouseEnter={() => handleMouseEnter([index.toString()], 0)}
+            >
+              <Link
+                href={item.url || "#"}
+                className={`px-4 py-2 block whitespace-nowrap ${
+                  isActive
+                    ? "text-blue-600 font-semibold"
+                    : "text-gray-800 hover:text-blue-600"
+                }`}
+              >
+                {item.title}
+              </Link>
+
+              {hoveredPath[0] === index.toString() && hasChildren && (
+                renderMenuLevel(item.children, 1, [index.toString()])
+              )}
+            </li>
+          );
+        })}
+      </ul>
+    </div>
   );
 }
