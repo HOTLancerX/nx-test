@@ -22,6 +22,7 @@ export interface NxPost {
 }
 
 export interface NxPostInput {
+  slug: any
   title: string
   layout: string
   content: string

@@ -15,8 +15,8 @@ export default function AddPost() {
       </div>
       
       <PostForm 
-        type="post" 
-        onSuccess={() => router.push('/nx-admin/post')}
+          type="post" 
+          onSuccess={() => router.push('/nx-admin/post')}
       />
     </div>
   )

@@ -1,66 +1,90 @@
 "use client"
-
-import { useState, useEffect } from "react"
-import { useRouter, useParams } from "next/navigation"
+import React, { use, useState, useEffect } from "react"
+import { notFound, useRouter } from "next/navigation"
 import PostForm from "../Form"
 
-export default function EditPost() {
+interface PostData {
+  _id: string
+  title: string
+  slug: string
+  content: string
+  status: "publish" | "draft" | "trash"
+  images?: string
+  gallery?: string[]
+  layout?: string
+  taxonomy?: Array<{ term_id: string; taxonomy: string }>
+}
+
+interface EditPostPageProps {
+  params: Promise<{
+    id: string
+  }>
+}
+
+export default function EditPostPage({ params }: EditPostPageProps) {
   const router = useRouter()
-  const params = useParams()
-  const [post, setPost] = useState<any>(null)
+
+  // ✅ unwrap the Promise using `use()` (React 18+ feature)
+  const { id } = use(params)
+
+  const [post, setPost] = useState<PostData | null>(null)
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
     const fetchPost = async () => {
+      setLoading(true)
+      setError(null)
       try {
-        const response = await fetch(`/api/post/${params.id}`)
-        if (!response.ok) {
-          throw new Error('Failed to fetch post')
+        const response = await fetch(`/api/post/${id}`, { credentials: "include" })
+        if (response.ok) {
+          const data = await response.json()
+          setPost(data)
+        } else {
+          const errorData = await response.json()
+          setError(errorData.message || "Failed to fetch post")
         }
-        const data = await response.json()
-        setPost(data)
-      } catch (error) {
-        console.error('Error fetching post:', error)
+      } catch (err) {
+        console.error("Error fetching post:", err)
+        setError("An unexpected error occurred.")
       } finally {
         setLoading(false)
       }
     }
 
-    if (params.id) {
+    if (id) {
       fetchPost()
     }
-  }, [params.id])
+  }, [id])
 
   if (loading) {
     return (
-      <div className="px-4 sm:px-6 lg:px-8 py-8 text-center">
-        Loading post...
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-gray-900"></div>
+      </div>
+    )
+  }
+
+  if (error) {
+    return (
+      <div className="container mx-auto py-10 text-center text-red-500">
+        <p>{error}</p>
       </div>
     )
   }
 
   if (!post) {
-    return (
-      <div className="px-4 sm:px-6 lg:px-8 py-8 text-center">
-        Post not found
-      </div>
-    )
+    return notFound()
   }
 
   return (
-    <div className="px-4 sm:px-6 lg:px-8 py-8">
-      <div className="mb-8">
-        <h1 className="text-2xl font-bold text-gray-900">Edit Post</h1>
-        <p className="mt-2 text-sm text-gray-600">
-          Update post content and settings
-        </p>
+    <div className="container mx-auto py-10 px-4">
+      <div className="flex items-center justify-between mb-6">
+        <h1 className="text-3xl font-bold">Edit Post</h1>
       </div>
-      
-      <PostForm 
-        type="post"
-        initialData={post}
-        onSuccess={() => router.push('/nx-admin/post')}
-      />
+      <div>
+        <PostForm type="post" initialData={post} onSuccess={() => router.push("/nx-admin/post")} />
+      </div>
     </div>
   )
 }

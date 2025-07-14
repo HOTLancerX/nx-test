@@ -16,8 +16,8 @@ export default function AddPage() {
       </div>
       
       <PostForm 
-        type="page" 
-        onSuccess={() => router.push('/nx-admin/page')}
+          type="page" 
+          onSuccess={() => router.push('/nx-admin/page')}
       />
     </div>
   )

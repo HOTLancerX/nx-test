@@ -10,6 +10,7 @@ interface Post {
   slug: string
   status: string
   date: string
+  user_id: string
 }
 
 export default function PostList() {

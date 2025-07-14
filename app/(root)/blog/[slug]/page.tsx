@@ -8,37 +8,42 @@ import Link from 'next/link'
 import { Settings } from "@/lib/settings"
 import Image from 'next/image'
 
-export async function generateMetadata({
-  params,
-}: {
-  params: { slug: string }
-}): Promise<Metadata> {
+// ✅ Await the async params properly
+export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
+  const { slug } = await params
+
   const settings = await Settings()
   const { db } = await connectToDatabase()
   const post = await db.collection<NxPost>('nx_posts').findOne({ 
-    slug: params.slug,
+    slug,
     type: 'post',
     status: 'publish'
   })
 
-  if (!post) return {}
+  if (!post) {
+    return {
+      title: "Post Not Found",
+      description: "The requested blog post could not be found."
+    }
+  }
 
   return {
     title: `${post.title} | ${settings.logo || "NX CMS"}`,
-    description: post.content.substring(0, 160),
+    description: post.content.replace(/<[^>]*>/g, "").substring(0, 160),
     openGraph: {
       title: post.title,
-      description: post.content.substring(0, 160),
+      description: post.content.replace(/<[^>]*>/g, "").substring(0, 160),
       images: post.images ? [{ url: post.images }] : [],
       type: 'article',
       publishedTime: post.date.toISOString(),
     },
     alternates: {
-      canonical: `${process.env.NEXT_PUBLIC_APP_URL}/blog/${params.slug}`,
+      canonical: `${process.env.NEXT_PUBLIC_APP_URL}/blog/${slug}`,
     },
   }
 }
 
+// 🧠 Fetch post, author, category, related posts
 async function getPostData(slug: string) {
   const { db } = await connectToDatabase()
   
@@ -50,24 +55,17 @@ async function getPostData(slug: string) {
 
   if (!post) return null
 
-  // Get primary category
   const primaryCategoryId = post.taxonomy?.[0]?.term_id
   let category = null
   if (primaryCategoryId) {
-    category = await db.collection<NxTerm>('nx_terms').findOne({ 
-      _id: primaryCategoryId
-    })
+    category = await db.collection<NxTerm>('nx_terms').findOne({ _id: primaryCategoryId })
   }
 
-  // Get author information
   let author = null
   if (post.user_id) {
-    author = await db.collection<NxUser>('nx_users').findOne({ 
-      _id: post.user_id
-    })
+    author = await db.collection<NxUser>('nx_users').findOne({ _id: post.user_id })
   }
 
-  // Get related posts
   let relatedPosts: WithId<NxPost>[] = []
   if (primaryCategoryId) {
     relatedPosts = await db.collection<NxPost>('nx_posts').find({
@@ -75,21 +73,16 @@ async function getPostData(slug: string) {
       type: 'post',
       status: 'publish',
       _id: { $ne: post._id }
-    })
-    .limit(10)
-    .toArray()
+    }).sort({ date: -1 }).limit(10).toArray()
   }
 
-  return {
-    post,
-    category,
-    author,
-    relatedPosts
-  }
+  return { post, category, author, relatedPosts }
 }
 
-export default async function BlogPost({ params }: { params: { slug: string } }) {
-  const data = await getPostData(params.slug)
+// ✅ Fixing the dynamic param here too
+export default async function BlogPost({ params }: { params: Promise<{ slug: string }> }) {
+  const { slug } = await params
+  const data = await getPostData(slug)
 
   if (!data?.post) return <div className="max-w-4xl mx-auto py-8 px-4">Post not found</div>
 
@@ -246,21 +239,21 @@ export default async function BlogPost({ params }: { params: { slug: string } })
       {/* Related Posts */}
       {relatedPosts.length > 0 && (
         <section className="mt-12">
-          <h2 className="text-2xl font-bold mb-6">Related Posts</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {relatedPosts.map((post) => (
-              <article key={post._id.toString()} className="border rounded-lg overflow-hidden hover:shadow-lg transition-shadow">
-                {post.images ? (
+          <h2 className="text-3xl font-bold mb-6 text-center">Related Posts</h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {relatedPosts.map((relatedPost) => (
+              <article key={relatedPost._id?.toString()} className="bg-white rounded-lg shadow-md overflow-hidden">
+                {relatedPost.images ? (
                   <Image
-                    src={post.images || "/placeholder.svg"}
-                    alt={post.title}
-                    width={800}
-                    height={300}
-                    className="w-full h-auto rounded-lg"
+                    src={relatedPost.images || "/placeholder.svg"}
+                    alt={relatedPost.title}
+                    width={300}
+                    height={200}
+                    className="w-full h-48 object-cover"
                   />
                 ) : (
-                  <div className="w-full h-32 bg-gray-200 rounded-lg flex items-center justify-center">
-                    <svg className="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <div className="w-full h-48 bg-gray-200 flex items-center justify-center">
+                    <svg className="w-12 h-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path
                         strokeLinecap="round"
                         strokeLinejoin="round"
@@ -271,17 +264,15 @@ export default async function BlogPost({ params }: { params: { slug: string } })
                   </div>
                 )}
                 <div className="p-4">
-                  <h3 className="font-semibold text-lg my-2">
-                    <Link href={`/blog/${post.slug}`} className="hover:underline">
-                      {post.title}
+                  <h3 className="font-semibold text-lg mb-2 line-clamp-2">
+                    <Link href={`/blog/${relatedPost.slug}`} className="hover:text-blue-600">
+                      {relatedPost.title}
                     </Link>
                   </h3>
-                  <time 
-                    dateTime={post.date.toISOString()} 
-                    className="text-gray-500 text-sm"
-                  >
-                    {new Date(post.date).toLocaleDateString()}
-                  </time>
+                  <p className="text-gray-600 text-sm mb-2">{new Date(relatedPost.date).toLocaleDateString()}</p>
+                  <p className="text-gray-700 text-sm line-clamp-3">
+                    {relatedPost.content.replace(/<[^>]*>/g, "").substring(0, 100)}...
+                  </p>
                 </div>
               </article>
             ))}

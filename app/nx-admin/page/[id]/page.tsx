@@ -57,9 +57,9 @@ export default function EditPage() {
       </div>
       
       <PostForm 
-        type="page"
-        initialData={page}
-        onSuccess={() => router.push('/nx-admin/page')}
+          type="page"
+          initialData={page}
+          onSuccess={() => router.push('/nx-admin/page')}
       />
     </div>
   )
