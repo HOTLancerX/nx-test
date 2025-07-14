@@ -1,7 +1,8 @@
 "use client"
+
 import { useState, useEffect } from "react"
-import Link from "next/link"
 import { useSearchParams } from "next/navigation"
+import Link from "next/link"
 import Pagination from "@/components/Pagination"
 import Image from "next/image"
 
@@ -17,7 +18,7 @@ interface User {
   facebook_link?: string
 }
 
-export default function UsersListPage() {
+export default function UsersListClient() {
   const [users, setUsers] = useState<User[]>([])
   const [totalPages, setTotalPages] = useState(1)
   const [loading, setLoading] = useState(true)
@@ -87,7 +88,7 @@ export default function UsersListPage() {
         </div>
       )}
 
-      <Pagination currentPage={Number.parseInt(page)} totalPages={totalPages} basePath="/users" />
+      <Pagination currentPage={parseInt(page)} totalPages={totalPages} basePath="/users" />
     </div>
   )
 }
