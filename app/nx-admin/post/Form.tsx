@@ -1,9 +1,8 @@
 'use client';
-
 import { useEffect, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import dynamic from 'next/dynamic';
-import { ObjectId } from 'mongodb';
+import 'suneditor/dist/css/suneditor.min.css'
 
 const SunEditor = dynamic(() => import('suneditor-react'), { ssr: false });
 
