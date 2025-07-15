@@ -10,29 +10,24 @@ import { Settings } from "@/lib/settings"
 import Image from 'next/image'
 import Layout from '@/components/layout/Layout'
 
-export async function generateMetadata({
-  params,
-}: {
-  params: { slug: string }
-}): Promise<Metadata> {
+export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
+  const { slug } = await params
+
   const settings = await Settings()
   const { db } = await connectToDatabase()
-  
-  // First try to find by slug
-  let category = await db.collection<NxTerm>('nx_terms').findOne({ 
-    slug: params.slug,
+
+  let category = await db.collection<NxTerm>('nx_terms').findOne({
+    slug,
     type: 'post_category',
   })
 
-  // If not found by slug, try as ObjectId
   if (!category) {
     try {
-      category = await db.collection<NxTerm>('nx_terms').findOne({ 
-        _id: new ObjectId(params.slug),
+      category = await db.collection<NxTerm>('nx_terms').findOne({
+        _id: new ObjectId(slug),
         type: 'post_category',
       })
     } catch (e) {
-      // Invalid ObjectId format
       return {}
     }
   }
@@ -48,34 +43,35 @@ export async function generateMetadata({
   }
 }
 
+
 export default async function CategoryPage({
   params,
   searchParams,
 }: {
-  params: { slug: string }
-  searchParams: { page?: string }
+  params: Promise<{ slug: string }>
+  searchParams: Promise<{ page?: string }>
 }) {
-  const currentPage = Number(searchParams.page) || 1
+  const { slug } = await params
+  const { page } = await searchParams
+
+  const currentPage = Number(page) || 1
   const perPage = 10
   const skip = (currentPage - 1) * perPage
 
   const { db } = await connectToDatabase()
-  
-  // First try to find by slug
-  let category = await db.collection<NxTerm>('nx_terms').findOne({ 
-    slug: params.slug,
+
+  let category = await db.collection<NxTerm>('nx_terms').findOne({
+    slug,
     type: 'post_category',
   })
 
-  // If not found by slug, try as ObjectId
   if (!category) {
     try {
-      category = await db.collection<NxTerm>('nx_terms').findOne({ 
-        _id: new ObjectId(params.slug),
+      category = await db.collection<NxTerm>('nx_terms').findOne({
+        _id: new ObjectId(slug),
         type: 'post_category',
       })
-    } catch (e) {
-      // Invalid ObjectId format
+    } catch {
       return notFound()
     }
   }

@@ -19,8 +19,8 @@ interface BannerProps {
 }
 
 export default function Banner({ settings }: BannerProps) {
-  const [banners, setBanners] = useState(settings.items || []);
-  const [loading, setLoading] = useState(false);
+  const [banners] = useState(settings.items || []);
+  const [loading] = useState(false);
 
   if (loading) {
     return (
@@ -78,7 +78,7 @@ export default function Banner({ settings }: BannerProps) {
                   alt={banners[0].title} 
                   className="w-full h-full object-cover rounded"
                 />
-                <div className="absolute inset-0 bg-black bg-opacity-30 flex items-center justify-center p-6">
+                <div className="flex items-center justify-center p-6">
                   <div className="text-white text-center max-w-2xl">
                     <h3 className="font-bold text-2xl mb-2">{banners[0].title}</h3>
                     <p className="text-lg mb-4">{banners[0].description}</p>
@@ -129,14 +129,14 @@ export default function Banner({ settings }: BannerProps) {
         <div className="w-full">
           {banners.length > 0 && (
             <div className="mb-6">
-              <div className="relative h-64 w-full">
+              <div className="relative w-full">
                 <img 
                   src={banners[0].imageUrl} 
                   alt={banners[0].title} 
                   className="w-full h-full object-cover rounded"
                 />
-                <div className="absolute inset-0 bg-black bg-opacity-30 flex items-center justify-center p-6">
-                  <div className="text-white text-center max-w-2xl">
+                <div className="flex items-center justify-center p-6">
+                  <div className="text-center max-w-2xl">
                     <h3 className="font-bold text-2xl mb-2">{banners[0].title}</h3>
                     <p className="text-lg mb-4">{banners[0].description}</p>
                     {banners[0].link && (

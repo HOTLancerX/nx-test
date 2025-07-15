@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import News from "./News";
 import Banner from "./Banner";
+import Content from "./Content";
 
 interface Props {
   id: string;
@@ -51,34 +52,7 @@ export default function Layout({ id }: Props) {
           >
             {item.type === 'news' && <News settings={item.settings} />}
             {item.type === 'banner' && <Banner settings={item.settings} />}
-            {item.type === 'content' && (
-              <div className="flex flex-col md:flex-row gap-4">
-                <div className="w-full md:w-1/2">
-                  <h2 className="text-xl font-bold mb-2">{item.settings.title}</h2>
-                  <div 
-                    className="prose"
-                    dangerouslySetInnerHTML={{ __html: item.settings.description }}
-                  />
-                  {item.settings.link && (
-                    <a 
-                      href={item.settings.link} 
-                      className="text-blue-600 hover:text-blue-800 mt-2 inline-block"
-                    >
-                      {item.settings.linkTitle || 'Learn more'}
-                    </a>
-                  )}
-                </div>
-                <div className="w-full md:w-1/2">
-                  {item.settings.imageUrl && (
-                    <img 
-                      src={item.settings.imageUrl} 
-                      alt={item.settings.title} 
-                      className="w-full h-auto rounded"
-                    />
-                  )}
-                </div>
-              </div>
-            )}
+            {item.type === 'content' && <Content settings={item.settings} />}
           </div>
         ))}
     </div>
