@@ -147,7 +147,7 @@ export default async function BlogPost({ params }: { params: Promise<{ slug: str
               )}
               <div>
                 <Link 
-                  href={`/author/${author.slug || author._id.toString()}`}
+                  href={`/users/${author.slug || author._id.toString()}`}
                   className="font-medium hover:underline"
                 >
                   {author.username}
@@ -225,7 +225,7 @@ export default async function BlogPost({ params }: { params: Promise<{ slug: str
             <div>
               <h3 className="text-xl font-semibold">
                 <Link 
-                  href={`/author/${author.slug || author._id.toString()}`}
+                  href={`/users/${author.slug || author._id.toString()}`}
                   className="hover:underline"
                 >
                   {author.username}
