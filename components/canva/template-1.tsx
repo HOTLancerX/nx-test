@@ -1,3 +1,4 @@
+//components/canva/template-1.tsx
 import Image from "next/image"
 import type React from "react"
 
@@ -42,16 +43,17 @@ export default function Template1({ data, styles, parseTitle }: TemplateProps) {
   }
 
   return (
-    <div className="relative w-full h-full flex flex-col justify-end p-8 overflow-hidden" style={backgroundStyle}>
-      
+    <div className="relative w-full h-full flex flex-col justify-end p-8 overflow-hidden" style={backgroundStyle}> 
+      {data.images && (
         <Image
-          src={data.images || "/placeholder.svg"}
+          src={data.images}
           width={800}
           height={600}
           alt="Post"
           className=""
           style={{ zIndex: 0 }}
         />
+      )}
       
       <div className="relative z-10 text-white">
         <h1

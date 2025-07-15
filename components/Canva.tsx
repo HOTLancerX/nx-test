@@ -251,7 +251,7 @@ export default function Canva() {
     const textToCopy = `Title: ${postTitle}\nURL: ${postUrl}`
     navigator.clipboard
       .writeText(textToCopy)
-      .then(() => alert("Post title and URL copied to clipboard!"))
+      //.then(() => alert("Post title and URL copied to clipboard!"))
       .catch((err) => console.error("Failed to copy:", err))
   }, [editorData.title, selectedPostId, postsList])
 
@@ -274,7 +274,7 @@ export default function Canva() {
   const templates = [Template1, Template2, Template3]
 
   return (
-    <div className="container mx-auto py-8 px-4">
+    <div className="container mx-auto">
       <h1 className="text-3xl font-bold mb-8 text-center">Canva-like Image Generator</h1>
 
       <div className="flex flex-col lg:flex-row gap-8">
@@ -670,7 +670,7 @@ export default function Canva() {
             {templates.map((TemplateComponent, index) => (
               <div key={index} className="bg-white rounded-lg shadow-md p-4 flex flex-col items-center">
                 <h3 className="font-semibold mb-2">Template {index + 1}</h3>
-                <div className="w-full aspect-video border border-gray-300 rounded-md overflow-hidden mb-4">
+                <div className="w-full aspect-square border border-gray-300 rounded-md overflow-hidden mb-4">
                   {/* Direct rendering of TemplateComponent */}
                   <div
                     ref={(el) => {

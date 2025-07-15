@@ -1,3 +1,4 @@
+import Image from "next/image"
 import type React from "react"
 
 interface TemplateProps {
@@ -43,10 +44,12 @@ export default function Template3({ data, styles, parseTitle }: TemplateProps) {
   return (
     <div className="relative w-full h-full flex flex-col p-8 overflow-hidden" style={backgroundStyle}>
       {data.images && (
-        <img
-          src={data.images || "/placeholder.svg"}
+        <Image
+          src={data.images}
+          width={800}
+          height={600}
           alt="Post"
-          className="absolute inset-0 w-full h-full object-cover opacity-50"
+          className=""
           style={{ zIndex: 0 }}
         />
       )}
