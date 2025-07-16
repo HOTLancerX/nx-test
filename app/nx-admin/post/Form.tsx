@@ -1,7 +1,6 @@
 "use client"
 import { useEffect, useState } from "react"
 import type React from "react"
-
 import { useRouter } from "next/navigation"
 import dynamic from "next/dynamic"
 import "suneditor/dist/css/suneditor.min.css"
@@ -11,14 +10,14 @@ const SunEditor = dynamic(() => import("suneditor-react"), { ssr: false })
 interface PostFormProps {
   type: "post" | "page"
   initialData?: any
-  onSuccess?: () => void // Add onSuccess prop
+  onSuccess?: () => void
 }
 
 interface Category {
   level: number
   _id: string
   title: string
-  parent_id?: string | null // Add parent_id for hierarchy
+  parent_id?: string | null
 }
 
 interface Layout {
@@ -29,48 +28,66 @@ interface Layout {
 export default function PostForm({ type, initialData, onSuccess }: PostFormProps) {
   const router = useRouter()
 
+  // Categories for posts
   const [categories, setCategories] = useState<Category[]>([])
-  const [layouts, setLayouts] = useState<Layout[]>([])
-  const [selectedCategories, setSelectedCategories] = useState<string[]>(
-    initialData?.taxonomy?.map((t: any) => t.term_id) || [],
-  )
-  const [loading, setLoading] = useState(false)
-  const [isSlugManuallyEdited, setIsSlugManuallyEdited] = useState(false) // New state for slug editing
 
+  // Layouts for pages
+  const [layouts, setLayouts] = useState<Layout[]>([])
+
+  // Selected categories (for posts)
+  const [selectedCategories, setSelectedCategories] = useState<string[]>(
+    initialData?.taxonomy?.map((t: any) => t.term_id) || []
+  )
+
+  // Loading state for form submit
+  const [loading, setLoading] = useState(false)
+
+  // To track if slug was manually edited (to avoid auto overwrite)
+  const [isSlugManuallyEdited, setIsSlugManuallyEdited] = useState(false)
+
+  // Main form data, including manual static meta field "hello"
   const [formData, setFormData] = useState({
     title: initialData?.title || "",
-    slug: initialData?.slug || "", // Add slug to formData
+    slug: initialData?.slug || "",
     content: initialData?.content || "",
     status: initialData?.status || "draft",
     images: initialData?.images || "",
     gallery: initialData?.gallery || [],
     layout: initialData?.layout || "",
+    hello: initialData?.meta?.hello || "", // manual static meta field
   })
 
+  // Initialize data when initialData or type changes
   useEffect(() => {
     if (initialData) {
       setFormData({
         title: initialData.title || "",
-        slug: initialData.slug || "", // Initialize slug from initialData
+        slug: initialData.slug || "",
         content: initialData.content || "",
         status: initialData.status || "draft",
         images: initialData.images || "",
         gallery: initialData.gallery || [],
         layout: initialData.layout || "",
+        hello: initialData.meta?.hello || "", // manual static meta field
       })
+
       if (initialData.slug) {
-        setIsSlugManuallyEdited(true) // If initial data has a slug, assume it's not auto-generated
+        setIsSlugManuallyEdited(true)
       }
+
+      setSelectedCategories(initialData?.taxonomy?.map((t: any) => t.term_id) || [])
     }
 
     if (type === "post") {
+      // Fetch post categories
       const fetchCategories = async () => {
         try {
-          const response = await fetch("/api/category?type=post_category", { credentials: "include" })
+          const response = await fetch("/api/category?type=post_category", {
+            credentials: "include",
+          })
           const data = await response.json()
           const allCategories: Category[] = data.categories || []
 
-          // Function to build a flat list with indentation for hierarchical display
           const buildCategoryOptions = (
             cats: Category[],
             parentId: string | null = null,
@@ -87,7 +104,6 @@ export default function PostForm({ type, initialData, onSuccess }: PostFormProps
             return options
           }
 
-
           setCategories(buildCategoryOptions(allCategories))
         } catch (err) {
           console.error("Failed to load categories", err)
@@ -97,6 +113,7 @@ export default function PostForm({ type, initialData, onSuccess }: PostFormProps
     }
 
     if (type === "page") {
+      // Fetch page layouts
       fetch("/api/layout", { credentials: "include" })
         .then((res) => res.json())
         .then((data) => {
@@ -106,6 +123,7 @@ export default function PostForm({ type, initialData, onSuccess }: PostFormProps
     }
   }, [initialData, type])
 
+  // Handle title change and auto-slug generation if slug not manually edited
   const handleTitleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newTitle = e.target.value
     setFormData((prev) => ({ ...prev, title: newTitle }))
@@ -119,32 +137,40 @@ export default function PostForm({ type, initialData, onSuccess }: PostFormProps
     }
   }
 
+  // Handle manual slug edit
   const handleSlugChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData((prev) => ({ ...prev, slug: e.target.value }))
-    setIsSlugManuallyEdited(true) // User manually edited the slug
+    setIsSlugManuallyEdited(true)
   }
 
+  // Gallery change handlers
   const handleGalleryChange = (index: number, value: string) => {
     const newGallery = [...formData.gallery]
     newGallery[index] = value
     setFormData({ ...formData, gallery: newGallery })
   }
-
   const addGalleryItem = () => {
     setFormData((prev) => ({ ...prev, gallery: [...prev.gallery, ""] }))
   }
-
   const removeGalleryItem = (index: number) => {
     const newGallery = formData.gallery.filter((_: any, i: number) => i !== index)
     setFormData((prev) => ({ ...prev, gallery: newGallery }))
   }
 
+  // Submit handler
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setLoading(true)
 
+    // Build meta data from manual static meta fields only (no dynamic metaFields)
+    const metaData: Record<string, string> = {}
+    if (formData.hello?.trim()) {
+      metaData["hello"] = formData.hello.trim()
+    }
+
     const postData = {
       ...formData,
+      meta: metaData,
       type,
       taxonomy:
         type === "post"
@@ -157,7 +183,7 @@ export default function PostForm({ type, initialData, onSuccess }: PostFormProps
 
     try {
       const method = initialData ? "PUT" : "POST"
-      const url = initialData ? `/api/post/${initialData._id}` : "/api/post"
+      const url = initialData ? `/api/post?id=${initialData._id}` : "/api/post"
       const res = await fetch(url, {
         method,
         headers: {
@@ -176,11 +202,11 @@ export default function PostForm({ type, initialData, onSuccess }: PostFormProps
         }
       } else {
         console.error(result.message || "Save failed")
-        alert(result.message || "Save failed") // Provide user feedback
+        alert(result.message || "Save failed")
       }
     } catch (error) {
       console.error("Error saving post:", error)
-      alert("An error occurred while saving the post.") // Provide user feedback
+      alert("An error occurred while saving the post.")
     } finally {
       setLoading(false)
     }
@@ -188,6 +214,7 @@ export default function PostForm({ type, initialData, onSuccess }: PostFormProps
 
   return (
     <form onSubmit={handleSubmit} className="max-w-4xl mx-auto p-4 space-y-6">
+      {/* Title */}
       <div>
         <label htmlFor="title" className="block mb-1 font-semibold">
           Title
@@ -202,6 +229,7 @@ export default function PostForm({ type, initialData, onSuccess }: PostFormProps
         />
       </div>
 
+      {/* Slug */}
       <div>
         <label htmlFor="slug" className="block mb-1 font-semibold">
           Slug
@@ -216,6 +244,7 @@ export default function PostForm({ type, initialData, onSuccess }: PostFormProps
         />
       </div>
 
+      {/* Content */}
       <div>
         <label htmlFor="content" className="block mb-1 font-semibold">
           Content
@@ -236,6 +265,7 @@ export default function PostForm({ type, initialData, onSuccess }: PostFormProps
         />
       </div>
 
+      {/* Categories (posts only) */}
       {type === "post" && (
         <div>
           <label htmlFor="categories" className="block mb-1 font-semibold">
@@ -245,7 +275,7 @@ export default function PostForm({ type, initialData, onSuccess }: PostFormProps
             <label
               key={cat._id}
               className="flex items-center space-x-2"
-              style={{ marginLeft: `${cat.level * 16}px` }} // 16px = 1rem indentation per level
+              style={{ marginLeft: `${cat.level * 16}px` }}
             >
               <input
                 type="checkbox"
@@ -254,9 +284,7 @@ export default function PostForm({ type, initialData, onSuccess }: PostFormProps
                 onChange={(e) => {
                   const value = e.target.value
                   setSelectedCategories((prev) =>
-                    e.target.checked
-                      ? [...prev, value]
-                      : prev.filter((id) => id !== value)
+                    e.target.checked ? [...prev, value] : prev.filter((id) => id !== value)
                   )
                 }}
                 className="form-checkbox"
@@ -267,6 +295,7 @@ export default function PostForm({ type, initialData, onSuccess }: PostFormProps
         </div>
       )}
 
+      {/* Layout (pages only) */}
       {type === "page" && (
         <div>
           <label htmlFor="layout" className="block mb-1 font-semibold">
@@ -289,6 +318,7 @@ export default function PostForm({ type, initialData, onSuccess }: PostFormProps
         </div>
       )}
 
+      {/* Featured Image URL */}
       <div>
         <label htmlFor="images" className="block mb-1 font-semibold">
           Featured Image URL
@@ -310,9 +340,10 @@ export default function PostForm({ type, initialData, onSuccess }: PostFormProps
         )}
       </div>
 
+      {/* Gallery URLs */}
       <div>
         <label className="block mb-1 font-semibold">Gallery URLs</label>
-        {formData.gallery.map((url: string | number | readonly string[] | undefined, index: number) => (
+        {formData.gallery.map((url: string, index: number) => (
           <div key={index} className="flex items-center mb-2">
             <input
               type="url"
@@ -339,6 +370,22 @@ export default function PostForm({ type, initialData, onSuccess }: PostFormProps
         </button>
       </div>
 
+      {/* Manual static meta field: Hello */}
+      <div>
+        <label htmlFor="hello" className="block mb-1 font-semibold">
+          Hello
+        </label>
+        <input
+          id="hello"
+          type="text"
+          value={formData.hello}
+          onChange={(e) => setFormData({ ...formData, hello: e.target.value })}
+          className="w-full px-4 py-2 border border-gray-300 rounded-md"
+          placeholder="Enter hello"
+        />
+      </div>
+
+      {/* Status */}
       <div>
         <label htmlFor="status" className="block mb-1 font-semibold">
           Status
@@ -346,7 +393,9 @@ export default function PostForm({ type, initialData, onSuccess }: PostFormProps
         <select
           id="status"
           value={formData.status}
-          onChange={(e) => setFormData({ ...formData, status: e.target.value as "publish" | "draft" | "trash" })}
+          onChange={(e) =>
+            setFormData({ ...formData, status: e.target.value as "publish" | "draft" | "trash" })
+          }
           className="w-full px-4 py-2 border border-gray-300 rounded-md"
         >
           <option value="draft">Draft</option>
@@ -355,6 +404,7 @@ export default function PostForm({ type, initialData, onSuccess }: PostFormProps
         </select>
       </div>
 
+      {/* Submit button */}
       <div>
         <button
           type="submit"

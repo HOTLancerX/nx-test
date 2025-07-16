@@ -120,7 +120,7 @@ export default async function BlogPost({ params }: { params: Promise<{ slug: str
           <li aria-current="page">
             <div className="flex items-center">
               <span className="mx-1">/</span>
-              <span className="text-gray-500 ml-1">{post.title}</span>
+              <span className="text-gray-500 ml-1">{post.hello}</span>
             </div>
           </li>
         </ol>
