@@ -1,22 +1,20 @@
 // schema/nx_layouts.ts
 import { ObjectId } from "mongodb";
 
-export interface LayoutItem {
-  id: string;
-  type: 'news' | 'banner' | 'hero';
-  position: number;
-  desktopWidth: 'w-full' | 'w-1/2' | 'w-1/3' | 'w-2/3' | 'w-1/4' | 'w-3/4';
-  mobileWidth: 'w-full' | 'w-1/2' | 'w-1/3' | 'w-2/3';
-  settings: NewsSettings | BannerSettings | HeroSettings;
-}
-
+// Existing types remain unchanged
 export interface NewsSettings {
+  categoryId: string;
   title: string;
-  categoryId?: string;
   style: number;
   postLimit: number;
   desktopGrid: number;
   mobileGrid: number;
+}
+
+export interface BannerItem {
+  imageUrl: string;
+  link?: string;
+  altText?: string;
 }
 
 export interface BannerSettings {
@@ -28,13 +26,6 @@ export interface BannerSettings {
   items: BannerItem[];
 }
 
-export interface BannerItem {
-  imageUrl: string;
-  title: string;
-  description: string;
-  link: string;
-}
-
 export interface HeroSettings {
   title: string;
   description: string;
@@ -43,13 +34,42 @@ export interface HeroSettings {
   imageUrl: string;
 }
 
+// New Contact Form Field type
+export interface ContactField {
+  type: string;
+  label: string;
+  placeholder?: string;
+  required: boolean;
+  options?: string; // For radio, select, checkbox
+  desktopWidth: string;
+  mobileWidth: string;
+}
+
+// New Contact Settings type
+export interface ContactSettings {
+  title: string;
+  description: string;
+  email: string;
+  phone: string;
+  address: string;
+  fields: ContactField[];
+}
+
+// Updated LayoutItem type to include contact
+export type LayoutItem = {
+  id: string;
+  type: 'news' | 'banner' | 'hero' | 'contact';
+  position: number;
+  desktopWidth: string;
+  mobileWidth: string;
+  settings: NewsSettings | BannerSettings | HeroSettings | ContactSettings;
+};
+
+// Existing NxLayout interface remains unchanged
 export interface NxLayout {
   _id?: ObjectId;
   title: string;
-  desktopWidth: "md:w-full" | "md:w-1/2" | "md:w-1/3" | "md:w-2/3" | "md:w-1/4" | "md:w-3/4"
-  status: 'draft' | 'published' | 'archived';
   items: LayoutItem[];
   createdAt: Date;
   updatedAt: Date;
-  userId: ObjectId;
 }

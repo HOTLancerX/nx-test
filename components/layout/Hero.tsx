@@ -1,6 +1,5 @@
 // components/layout/Hero.tsx
 import { useState } from "react";
-import Link from "next/link";
 
 interface HeroProps {
   settings: {

@@ -3,7 +3,8 @@
 import { useEffect, useState } from "react";
 import News from "./News";
 import Banner from "./Banner";
-import Content from "./Hero";
+import Hero from "./Hero";
+import ContactUs from "./ContactUs";
 
 interface Props {
   id: string;
@@ -52,7 +53,8 @@ export default function Layout({ id }: Props) {
           >
             {item.type === 'news' && <News settings={item.settings} />}
             {item.type === 'banner' && <Banner settings={item.settings} />}
-            {item.type === 'content' && <Content settings={item.settings} />}
+            {item.type === 'hero' && <Hero settings={item.settings} />}
+            {item.type === 'contact' && <ContactUs {...item.settings} onSubmit={async (data: any) => console.log(data)} />}
           </div>
         ))}
     </div>
