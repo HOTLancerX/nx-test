@@ -1,17 +1,17 @@
-// components/editor/Content.tsx
+// components/editor/Hero.tsx
 "use client";
 import dynamic from "next/dynamic";
-import { ContentSettings } from "@/schema/nx_layouts";
+import { HeroSettings } from "@/schema/nx_layouts";
 import 'suneditor/dist/css/suneditor.min.css'
 
 const SunEditor = dynamic(() => import("suneditor-react"), { ssr: false });
 
-interface ContentSettingsFormProps {
-  settings: ContentSettings;
-  onChange: (settings: ContentSettings) => void;
+interface HeroSettingsFormProps {
+  settings: HeroSettings;
+  onChange: (settings: HeroSettings) => void;
 }
 
-export default function ContentSettingsForm({ settings, onChange }: ContentSettingsFormProps) {
+export default function HeroSettingsForm({ settings, onChange }: HeroSettingsFormProps) {
   return (
     <div className="mt-4 space-y-4">
       <input
@@ -23,8 +23,8 @@ export default function ContentSettingsForm({ settings, onChange }: ContentSetti
       />
 
       <SunEditor
-        setContents={settings.description}
-        onChange={(content) => onChange({ ...settings, description: content })}
+        setHeros={settings.description}
+        onChange={(Hero) => onChange({ ...settings, description: content })}
         setOptions={{
           height: "200px",
           buttonList: [["bold", "underline", "italic"], ["fontColor", "hiliteColor"], ["align", "list"], ["link"]],

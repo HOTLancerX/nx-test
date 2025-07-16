@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import News from "./News";
 import Banner from "./Banner";
-import Content from "./Content";
+import Content from "./Hero";
 
 interface Props {
   id: string;

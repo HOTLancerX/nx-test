@@ -1,8 +1,8 @@
-// components/layout/Content.tsx
+// components/layout/Hero.tsx
 import { useState } from "react";
 import Link from "next/link";
 
-interface ContentProps {
+interface HeroProps {
   settings: {
     title: string;
     description: string;
@@ -12,7 +12,7 @@ interface ContentProps {
   };
 }
 
-export default function Content({ settings }: ContentProps) {
+export default function Hero({ settings }: HeroProps) {
   const [loading] = useState(false);
 
   if (loading) {

@@ -1,12 +1,11 @@
 // app/nx-admin/layout/Form.tsx
 "use client"
 import { useState } from "react";
-import { NewsSettings, BannerSettings, ContentSettings, LayoutItem } from "@/schema/nx_layouts";
+import { NewsSettings, BannerSettings, HeroSettings, LayoutItem } from "@/schema/nx_layouts";
 
 import NewsSettingsForm from "@/components/editor/News";
 import BannerSettingsForm from "@/components/editor/Banner";
-import ProductSettingsForm from "@/components/editor/Product";
-import ContentSettingsForm from "@/components/editor/Content";
+import HeroSettingsForm from "@/components/editor/Hero";
 import Image from "next/image";
 
 
@@ -24,16 +23,16 @@ export default function LayoutForm({ initialData, onSuccess }: LayoutFormProps) 
   const [items, setItems] = useState<LayoutItem[]>(initialData?.items || []);
   const [loading, setLoading] = useState(false);
 
-  const addItem = (type: 'news' | 'banner' | 'product' | 'content') => {
+  const addItem = (type: 'news' | 'banner' | 'hero') => {
     const baseItem: Omit<LayoutItem, 'settings'> = {
       id: `item-${Date.now()}`,
       type,
       position: items.length + 1,
-      desktopWidth: 'w-full',
+      desktopWidth: 'md:w-full',
       mobileWidth: 'w-full'
     };
 
-    let settings: NewsSettings | BannerSettings | ContentSettings;
+    let settings: NewsSettings | BannerSettings | HeroSettings;
 
     switch(type) {
       case 'news':
@@ -55,17 +54,7 @@ export default function LayoutForm({ initialData, onSuccess }: LayoutFormProps) 
           items: []
         };
         break;
-      case 'product':
-        settings = {
-          title: '',
-          titleStyle: 'text-left',
-          style: 1,
-          desktopGrid: 1,
-          mobileGrid: 1,
-          items: []
-        };
-        break;
-      case 'content':
+      case 'hero':
         settings = {
           title: '',
           description: '',
@@ -203,16 +192,9 @@ export default function LayoutForm({ initialData, onSuccess }: LayoutFormProps) 
               />
             )}
 
-            {item.type === 'product' && (
-              <ProductSettingsForm 
-                settings={item.settings as BannerSettings}
-                onChange={(settings) => updateItem(item.id, { settings })}
-              />
-            )}
-
-            {item.type === 'content' && (
-              <ContentSettingsForm 
-                settings={item.settings as ContentSettings}
+            {item.type === 'hero' && (
+              <HeroSettingsForm 
+                settings={item.settings as HeroSettings}
                 onChange={(settings) => updateItem(item.id, { settings })}
               />
             )}
@@ -244,7 +226,7 @@ export default function LayoutForm({ initialData, onSuccess }: LayoutFormProps) 
 }
 
 // Add Layout Popup component
-const AddLayoutPopup = ({ onAdd }: { onAdd: (type: 'news' | 'banner' | 'product' | 'content') => void }) => {
+const AddLayoutPopup = ({ onAdd }: { onAdd: (type: 'news' | 'banner' | 'hero') => void }) => {
   const [isOpen, setIsOpen] = useState(false);
 
   const items = [
@@ -263,14 +245,8 @@ const AddLayoutPopup = ({ onAdd }: { onAdd: (type: 'news' | 'banner' | 'product'
     {
       id: 3,
       icon: "/icon/element1.jpg",
-      title: "Content Block",
-      type: "content" as const
-    },
-    {
-      id: 4,
-      icon: "/icon/element1.jpg",
-      title: "Product Block",
-      type: "product" as const
+      title: "Hero Block",
+      type: "Hero" as const
     }
   ];
 
