@@ -1,5 +1,6 @@
 import { connectToDatabase } from '@/lib/db'
 import type { NxPost } from '@/schema/nx_posts'
+import type { NxPostMeta, NxPostWithMeta } from '@/schema/nx_posts_meta'
 import type { NxTerm } from '@/schema/nx_terms'
 import type { NxUser } from '@/schema/nx_users'
 import { WithId } from 'mongodb'
@@ -8,12 +9,11 @@ import Link from 'next/link'
 import { Settings } from "@/lib/settings"
 import Image from 'next/image'
 
-// ✅ Await the async params properly
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
   const { slug } = await params
-
   const settings = await Settings()
   const { db } = await connectToDatabase()
+
   const post = await db.collection<NxPost>('nx_posts').findOne({ 
     slug,
     type: 'post',
@@ -43,10 +43,9 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   }
 }
 
-// 🧠 Fetch post, author, category, related posts
 async function getPostData(slug: string) {
   const { db } = await connectToDatabase()
-  
+
   const post = await db.collection<NxPost>('nx_posts').findOne({ 
     slug,
     type: 'post',
@@ -55,35 +54,43 @@ async function getPostData(slug: string) {
 
   if (!post) return null
 
+  const metas = await db.collection<NxPostMeta>('nx_posts_meta')
+    .find({ nx_posts: post._id })
+    .toArray()
+
+  const postWithMeta: NxPostWithMeta = {
+    ...post,
+  }
+
+  metas.forEach((meta) => {
+    postWithMeta[meta.title] = meta.content
+  })
+
   const primaryCategoryId = post.taxonomy?.[0]?.term_id
-  let category = null
-  if (primaryCategoryId) {
-    category = await db.collection<NxTerm>('nx_terms').findOne({ _id: primaryCategoryId })
-  }
+  let category = primaryCategoryId
+    ? await db.collection<NxTerm>('nx_terms').findOne({ _id: primaryCategoryId })
+    : null
 
-  let author = null
-  if (post.user_id) {
-    author = await db.collection<NxUser>('nx_users').findOne({ _id: post.user_id })
-  }
+  let author = post.user_id
+    ? await db.collection<NxUser>('nx_users').findOne({ _id: post.user_id })
+    : null
 
-  let relatedPosts: WithId<NxPost>[] = []
-  if (primaryCategoryId) {
-    relatedPosts = await db.collection<NxPost>('nx_posts').find({
-      'taxonomy.term_id': primaryCategoryId,
-      type: 'post',
-      status: 'publish',
-      _id: { $ne: post._id }
-    }).sort({ date: -1 }).limit(10).toArray()
-  }
+  const relatedPosts: WithId<NxPost>[] = primaryCategoryId
+    ? await db.collection<NxPost>('nx_posts').find({
+        'taxonomy.term_id': primaryCategoryId,
+        type: 'post',
+        status: 'publish',
+        _id: { $ne: post._id }
+      }).sort({ date: -1 }).limit(10).toArray()
+    : []
 
-  return { post, category, author, relatedPosts }
+  return { post: postWithMeta, category, author, relatedPosts }
 }
 
 // ✅ Fixing the dynamic param here too
 export default async function BlogPost({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params
   const data = await getPostData(slug)
-
   if (!data?.post) return <div className="max-w-4xl mx-auto py-8 px-4">Post not found</div>
 
   const { post, category, author, relatedPosts } = data
@@ -103,10 +110,7 @@ export default async function BlogPost({ params }: { params: Promise<{ slug: str
               <li>
                 <div className="flex items-center">
                   <span className="mx-1">/</span>
-                  <Link 
-                    href={`/category/${category.slug}`} 
-                    className="text-blue-600 hover:underline ml-1"
-                  >
+                  <Link href={`/category/${category.slug}`} className="text-blue-600 hover:underline ml-1">
                     {category.title}
                   </Link>
                 </div>
@@ -132,38 +136,32 @@ export default async function BlogPost({ params }: { params: Promise<{ slug: str
             {category.title}
           </Link>
         )}
-        
+
         <h1 className="text-4xl font-bold mb-4">{post.title}</h1>
-        
+
         <div className="flex items-center space-x-4">
           {author && (
             <div className="flex items-center">
               {author.images && (
-                <img 
-                  src={author.images} 
+                <img
+                  src={author.images || "/placeholder.svg"}
                   alt={author.username}
                   className="w-10 h-10 rounded-full mr-2"
                 />
               )}
               <div>
-                <Link 
-                  href={`/users/${author.slug || author._id.toString()}`}
-                  className="font-medium hover:underline"
-                >
+                <Link href={`/users/${author.slug || author._id.toString()}`} className="font-medium hover:underline">
                   {author.username}
                 </Link>
               </div>
             </div>
           )}
-          
-          <time 
-            dateTime={post.date.toISOString()} 
-            className="text-gray-500"
-          >
-            {new Date(post.date).toLocaleDateString('en-US', {
-              year: 'numeric',
-              month: 'long',
-              day: 'numeric'
+
+          <time dateTime={post.date.toISOString()} className="text-gray-500">
+            {new Date(post.date).toLocaleDateString("en-US", {
+              year: "numeric",
+              month: "long",
+              day: "numeric",
             })}
           </time>
         </div>
@@ -192,9 +190,9 @@ export default async function BlogPost({ params }: { params: Promise<{ slug: str
       )}
 
       {/* Article Content */}
-      <div 
-        className="content block space-y-2 text-xl my-4 leading-8" 
-        dangerouslySetInnerHTML={{ __html: post.content }} 
+      <div
+        className="content block space-y-2 text-xl my-4 leading-8"
+        dangerouslySetInnerHTML={{ __html: post.content }}
       />
 
       {/* Gallery */}
@@ -203,11 +201,20 @@ export default async function BlogPost({ params }: { params: Promise<{ slug: str
           {post.gallery.map((image, index) => (
             <img
               key={index}
-              src={image}
+              src={image || "/placeholder.svg"}
               alt={`${post.title} gallery image ${index + 1}`}
               className="rounded-lg shadow"
             />
           ))}
+        </div>
+      )}
+
+      {post.link && (
+        <div className="mt-6 text-sm text-gray-600">
+          <strong>RSS Link:</strong>{" "}
+          <a href={post.link} target="_blank" rel="noopener noreferrer" className="text-blue-600 underline">
+            {post.link}
+          </a>
         </div>
       )}
 
@@ -216,18 +223,15 @@ export default async function BlogPost({ params }: { params: Promise<{ slug: str
         <section className="bg-gray-50 p-6 rounded-lg mb-12">
           <div className="flex items-center">
             {author.images && (
-              <img 
-                src={author.images} 
+              <img
+                src={author.images || "/placeholder.svg"}
                 alt={author.username}
                 className="w-16 h-16 rounded-full mr-4"
               />
             )}
             <div>
               <h3 className="text-xl font-semibold">
-                <Link 
-                  href={`/users/${author.slug || author._id.toString()}`}
-                  className="hover:underline"
-                >
+                <Link href={`/users/${author.slug || author._id.toString()}`} className="hover:underline">
                   {author.username}
                 </Link>
               </h3>
@@ -287,32 +291,34 @@ export default async function BlogPost({ params }: { params: Promise<{ slug: str
           __html: JSON.stringify({
             "@context": "https://schema.org",
             "@type": "BlogPosting",
-            "headline": post.title,
-            "description": post.content.substring(0, 160),
-            "datePublished": post.date.toISOString(),
-            "dateModified": post.modified?.toISOString() || post.date.toISOString(),
-            "image": post.images ? [post.images] : [],
-            "author": {
+            headline: post.title,
+            description: post.content.substring(0, 160),
+            datePublished: post.date.toISOString(),
+            dateModified: post.modified?.toISOString() || post.date.toISOString(),
+            image: post.images ? [post.images] : [],
+            author: {
               "@type": "Person",
-              "name": author?.username || "Unknown Author",
-              "url": author ? `${process.env.SITE_URL}/author/${author.slug || author._id.toString()}` : undefined
+              name: author?.username || "Unknown Author",
+              url: author ? `${process.env.SITE_URL}/author/${author.slug || author._id.toString()}` : undefined,
             },
-            "publisher": {
+            publisher: {
               "@type": "Organization",
-              "name": process.env.SITE_NAME,
-              "logo": {
+              name: process.env.SITE_NAME,
+              logo: {
                 "@type": "ImageObject",
-                "url": `${process.env.SITE_URL}/logo.png`
-              }
+                url: `${process.env.SITE_URL}/logo.png`,
+              },
             },
-            "mainEntityOfPage": {
+            mainEntityOfPage: {
               "@type": "WebPage",
-              "@id": `${process.env.SITE_URL}/blog/${post.slug}`
+              "@id": `${process.env.SITE_URL}/blog/${post.slug}`,
             },
-            ...(category ? {
-              "articleSection": category.title,
-              "keywords": [category.title]
-            } : {})
+            ...(category
+              ? {
+                  articleSection: category.title,
+                  keywords: [category.title],
+                }
+              : {}),
           }),
         }}
       />
