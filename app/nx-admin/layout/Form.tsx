@@ -5,7 +5,9 @@ import { NewsSettings, BannerSettings, ContentSettings, LayoutItem } from "@/sch
 
 import NewsSettingsForm from "@/components/editor/News";
 import BannerSettingsForm from "@/components/editor/Banner";
+import ProductSettingsForm from "@/components/editor/Product";
 import ContentSettingsForm from "@/components/editor/Content";
+import Image from "next/image";
 
 
 interface LayoutFormProps {
@@ -22,7 +24,7 @@ export default function LayoutForm({ initialData, onSuccess }: LayoutFormProps) 
   const [items, setItems] = useState<LayoutItem[]>(initialData?.items || []);
   const [loading, setLoading] = useState(false);
 
-  const addItem = (type: 'news' | 'banner' | 'content') => {
+  const addItem = (type: 'news' | 'banner' | 'product' | 'content') => {
     const baseItem: Omit<LayoutItem, 'settings'> = {
       id: `item-${Date.now()}`,
       type,
@@ -44,6 +46,16 @@ export default function LayoutForm({ initialData, onSuccess }: LayoutFormProps) 
         };
         break;
       case 'banner':
+        settings = {
+          title: '',
+          titleStyle: 'text-left',
+          style: 1,
+          desktopGrid: 1,
+          mobileGrid: 1,
+          items: []
+        };
+        break;
+      case 'product':
         settings = {
           title: '',
           titleStyle: 'text-left',
@@ -191,6 +203,13 @@ export default function LayoutForm({ initialData, onSuccess }: LayoutFormProps) 
               />
             )}
 
+            {item.type === 'product' && (
+              <ProductSettingsForm 
+                settings={item.settings as BannerSettings}
+                onChange={(settings) => updateItem(item.id, { settings })}
+              />
+            )}
+
             {item.type === 'content' && (
               <ContentSettingsForm 
                 settings={item.settings as ContentSettings}
@@ -225,7 +244,7 @@ export default function LayoutForm({ initialData, onSuccess }: LayoutFormProps) 
 }
 
 // Add Layout Popup component
-const AddLayoutPopup = ({ onAdd }: { onAdd: (type: 'news' | 'banner' | 'content') => void }) => {
+const AddLayoutPopup = ({ onAdd }: { onAdd: (type: 'news' | 'banner' | 'product' | 'content') => void }) => {
   const [isOpen, setIsOpen] = useState(false);
 
   const items = [
@@ -246,6 +265,12 @@ const AddLayoutPopup = ({ onAdd }: { onAdd: (type: 'news' | 'banner' | 'content'
       icon: "/icon/element1.jpg",
       title: "Content Block",
       type: "content" as const
+    },
+    {
+      id: 4,
+      icon: "/icon/element1.jpg",
+      title: "Product Block",
+      type: "product" as const
     }
   ];
 
@@ -276,8 +301,10 @@ const AddLayoutPopup = ({ onAdd }: { onAdd: (type: 'news' | 'banner' | 'content'
                   }}
                   className="flex items-center p-3 border rounded-lg hover:bg-gray-50"
                 >
-                  <img 
-                    src={item.icon} 
+                  <Image
+                    src={item.icon || "/placeholder.svg"}
+                    width={40}
+                    height={40}
                     alt={item.title} 
                     className="w-10 h-10 mr-3 object-cover rounded"
                   />

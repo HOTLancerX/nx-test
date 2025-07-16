@@ -3,7 +3,7 @@ import { ObjectId } from "mongodb";
 
 export interface LayoutItem {
   id: string;
-  type: 'news' | 'banner' | 'content';
+  type: 'news' | 'banner' | 'product' | 'content';
   position: number;
   desktopWidth: 'w-full' | 'w-1/2' | 'w-1/3' | 'w-2/3' | 'w-1/4' | 'w-3/4';
   mobileWidth: 'w-full' | 'w-1/2' | 'w-1/3' | 'w-2/3';
