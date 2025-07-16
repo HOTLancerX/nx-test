@@ -6,8 +6,8 @@ export default async function Header() {
   return (
     <div className="bg-white shadow">
       <div 
-        className="block"
-        dangerouslySetInnerHTML={{ __html: settings.ads-1 }} 
+        className="container flex justify-center mx-auto"
+        dangerouslySetInnerHTML={{ __html: settings.ads_1 }} 
       />
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between h-16">

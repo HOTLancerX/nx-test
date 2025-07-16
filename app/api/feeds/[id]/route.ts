@@ -1,11 +1,11 @@
-import { NextRequest, NextResponse } from "next/server"
+import { type NextRequest, NextResponse } from "next/server"
 import { connectToDatabase } from "@/lib/db"
 import { requireAdminAuth } from "@/lib/auth"
 import { ObjectId } from "mongodb"
 import type { NxFeed } from "@/schema/nx_feeds"
 
 function getIdFromUrl(url: string): string | null {
-  const match = url.match(/\/feeds\/([^\/\?]+)/)
+  const match = url.match(/\/feeds\/([^/?]+)/)
   return match ? match[1] : null
 }
 
@@ -25,7 +25,8 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({
       ...feed,
       _id: feed._id.toString(),
-      category_id: feed.category_id.toString()
+      category_id: feed.category_id.toString(),
+      user_id: feed.user_id.toString(), // Ensure user_id is string
     })
   } catch (error) {
     console.error("Feed GET error:", error)
@@ -49,21 +50,22 @@ export async function PUT(req: NextRequest) {
 
     const updateData: Partial<NxFeed> = {
       ...feedData,
-      updated_at: new Date()
+      updated_at: new Date(),
     }
 
     if (feedData.category_id) {
       updateData.category_id = new ObjectId(feedData.category_id)
     }
+    if (feedData.user_id) {
+      // Handle user_id update
+      updateData.user_id = new ObjectId(feedData.user_id)
+    }
 
-    await db.collection("nx_feeds").updateOne(
-      { _id: new ObjectId(id) },
-      { $set: updateData }
-    )
+    await db.collection("nx_feeds").updateOne({ _id: new ObjectId(id) }, { $set: updateData })
 
     return NextResponse.json({
       success: true,
-      message: "Feed updated successfully"
+      message: "Feed updated successfully",
     })
   } catch (error) {
     console.error("Feed PUT error:", error)
@@ -84,7 +86,7 @@ export async function DELETE(req: NextRequest) {
 
     return NextResponse.json({
       success: true,
-      message: "Feed deleted successfully"
+      message: "Feed deleted successfully",
     })
   } catch (error) {
     console.error("Feed DELETE error:", error)

@@ -8,6 +8,7 @@ interface Feed {
   title: string
   url: string
   category_id: string
+  user_id: string // Added user_id
   active: boolean
   last_fetched?: string
 }
@@ -20,6 +21,7 @@ export default function FeedsPage() {
   const [totalPages, setTotalPages] = useState(1)
   const [showPopup, setShowPopup] = useState(false)
   const [editingFeed, setEditingFeed] = useState<Feed | null>(null)
+  const [error, setError] = useState<string | null>(null) // State for error messages
 
   useEffect(() => {
     fetchFeeds()
@@ -28,12 +30,27 @@ export default function FeedsPage() {
   const fetchFeeds = async () => {
     try {
       setLoading(true)
-      const response = await fetch(`/api/feeds?page=${currentPage}`)
+      setError(null) // Clear previous errors
+      const response = await fetch(`/api/feeds?page=${currentPage}`, {
+        credentials: "include", // Crucial for sending auth cookie
+      })
+
+      if (!response.ok) {
+        const errorData = await response.json()
+        throw new Error(errorData.message || `Failed to fetch feeds: ${response.status}`)
+      }
+
       const data = await response.json()
-      setFeeds(data.feeds)
-      setTotalPages(data.totalPages)
+      if (Array.isArray(data.feeds)) {
+        // Ensure data.feeds is an array
+        setFeeds(data.feeds)
+        setTotalPages(data.totalPages)
+      } else {
+        throw new Error("Invalid data format received for feeds.")
+      }
     } catch (error) {
       console.error("Error fetching feeds:", error)
+      setError(error instanceof Error ? error.message : "An unexpected error occurred while fetching feeds.")
     } finally {
       setLoading(false)
     }
@@ -41,28 +58,36 @@ export default function FeedsPage() {
 
   const deleteFeed = async (id: string) => {
     if (!confirm("Are you sure you want to delete this feed?")) return
-    
+
     try {
       const response = await fetch(`/api/feeds/${id}`, {
         method: "DELETE",
+        credentials: "include", // Crucial for sending auth cookie
       })
-      
-      if (response.ok) {
-        fetchFeeds()
+
+      if (!response.ok) {
+        const errorData = await response.json()
+        throw new Error(errorData.message || `Failed to delete feed: ${response.status}`)
       }
+
+      fetchFeeds() // Re-fetch feeds after successful deletion
     } catch (error) {
       console.error("Error deleting feed:", error)
+      alert(error instanceof Error ? error.message : "An error occurred while deleting the feed.")
     }
   }
 
   const handleSync = async () => {
     try {
-      const response = await fetch("/api/rss-sync")
+      const response = await fetch("/api/rss-sync", {
+        credentials: "include", // Crucial for sending auth cookie
+      })
       const result = await response.json()
       if (result.success) {
         alert(`RSS sync completed. Imported ${result.imported} items.`)
+        fetchFeeds() // Re-fetch feeds to update last_fetched time
       } else {
-        alert("RSS sync failed: " + result.message)
+        alert("RSS sync failed: " + (result.error || result.message))
       }
     } catch (error) {
       console.error("Error syncing RSS:", error)
@@ -74,14 +99,26 @@ export default function FeedsPage() {
     return <div className="text-center py-8">Loading feeds...</div>
   }
 
+  if (error) {
+    return (
+      <div className="px-4 sm:px-6 lg:px-8 py-8 text-center text-red-500">
+        <p>{error}</p>
+        <button
+          onClick={fetchFeeds}
+          className="mt-4 inline-flex items-center justify-center rounded-md border border-transparent bg-blue-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+        >
+          Try Again
+        </button>
+      </div>
+    )
+  }
+
   return (
     <div className="px-4 sm:px-6 lg:px-8">
       <div className="sm:flex sm:items-center">
         <div className="sm:flex-auto">
           <h1 className="text-2xl font-semibold text-gray-900">RSS Feeds</h1>
-          <p className="mt-2 text-sm text-gray-700">
-            Manage your RSS feed sources and automatic post imports
-          </p>
+          <p className="mt-2 text-sm text-gray-700">Manage your RSS feed sources and automatic post imports</p>
         </div>
         <div className="mt-4 sm:mt-0 sm:ml-16 sm:flex-none space-x-2">
           <button
@@ -109,6 +146,7 @@ export default function FeedsPage() {
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Title</th>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">URL</th>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Category</th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">User</th>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Last Sync</th>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
@@ -127,9 +165,14 @@ export default function FeedsPage() {
                   <div className="text-sm text-gray-500">{feed.category_id}</div>
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap">
-                  <span className={`px-2 py-1 text-xs rounded-full ${
-                    feed.active ? "bg-green-100 text-green-800" : "bg-red-100 text-red-800"
-                  }`}>
+                  <div className="text-sm text-gray-500">{feed.user_id}</div> {/* Display user_id */}
+                </td>
+                <td className="px-6 py-4 whitespace-nowrap">
+                  <span
+                    className={`px-2 py-1 text-xs rounded-full ${
+                      feed.active ? "bg-green-100 text-green-800" : "bg-red-100 text-red-800"
+                    }`}
+                  >
                     {feed.active ? "Active" : "Inactive"}
                   </span>
                 </td>
@@ -146,10 +189,7 @@ export default function FeedsPage() {
                   >
                     Edit
                   </button>
-                  <button
-                    onClick={() => deleteFeed(feed._id)}
-                    className="text-red-600 hover:text-red-900"
-                  >
+                  <button onClick={() => deleteFeed(feed._id)} className="text-red-600 hover:text-red-900">
                     Delete
                   </button>
                 </td>
