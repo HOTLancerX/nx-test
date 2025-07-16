@@ -36,6 +36,7 @@ export interface HeroSettings {
 
 // New Contact Form Field type
 export interface ContactField {
+  id: number;
   type: string;
   label: string;
   placeholder?: string;
@@ -47,6 +48,7 @@ export interface ContactField {
 
 // New Contact Settings type
 export interface ContactSettings {
+  _id: string;
   title: string;
   description: string;
   email: string;
