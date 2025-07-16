@@ -9,6 +9,11 @@ interface QnAItem {
   answer: string
 }
 
+interface LayoutOption {
+  _id: string
+  title: string
+}
+
 export default function SettingsPage() {
   const [loading, setLoading] = useState(false)
   const [fetchLoading, setFetchLoading] = useState(true)
@@ -16,26 +21,38 @@ export default function SettingsPage() {
     logo: "",
     siteurl: "",
     QnA: [] as QnAItem[],
+    homepage: "", // New state for homepage layout ID
   })
+  const [layouts, setLayouts] = useState<LayoutOption[]>([]) // State for layouts
 
   useEffect(() => {
-    fetchSettings()
+    fetchSettingsAndLayouts()
   }, [])
 
-  const fetchSettings = async () => {
+  const fetchSettingsAndLayouts = async () => {
     try {
-      const response = await fetch("/api/settings")
-      if (response.ok) {
-        const data = await response.json()
+      setFetchLoading(true)
+      // Fetch settings
+      const settingsResponse = await fetch("/api/settings")
+      if (settingsResponse.ok) {
+        const data = await settingsResponse.json()
         setSettings({
           logo: data.logo || "",
           siteurl: data.siteurl || "",
           QnA: data.QnA || [],
+          homepage: data.homepage || "", // Initialize homepage from fetched settings
           ...data,
         })
       }
+
+      // Fetch layouts
+      const layoutsResponse = await fetch("/api/layout")
+      if (layoutsResponse.ok) {
+        const data = await layoutsResponse.json()
+        setLayouts(data.layouts || [])
+      }
     } catch (error) {
-      console.error("Error fetching settings:", error)
+      console.error("Error fetching settings or layouts:", error)
     } finally {
       setFetchLoading(false)
     }
@@ -133,6 +150,28 @@ export default function SettingsPage() {
                     className="mt-1 focus:ring-blue-500 focus:border-blue-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md px-3 py-2 border"
                     placeholder="https://example.com"
                   />
+                </div>
+
+                {/* Homepage Layout Setting */}
+                <div>
+                  <h1 className="text-base font-medium text-gray-900 mb-2">Homepage Layout</h1>
+                  <p className="mt-1 text-sm text-gray-600 mb-2">
+                    Here you will find a list of all the layouts and by selecting any one of them, its ID will be saved
+                    in the database.
+                  </p>
+                  <select
+                    title="homepage"
+                    value={settings.homepage || ""}
+                    onChange={(e) => handleChange("homepage", e.target.value)}
+                    className="mt-1 focus:ring-blue-500 focus:border-blue-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md px-3 py-2 border"
+                  >
+                    <option value="">Select a layout</option>
+                    {layouts.map((layout) => (
+                      <option key={layout._id} value={layout._id}>
+                        {layout.title}
+                      </option>
+                    ))}
+                  </select>
                 </div>
 
                 {/* QnA Setting */}

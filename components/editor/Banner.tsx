@@ -109,13 +109,13 @@ export default function BannerSettingsForm({ settings, onChange }: BannerSetting
               placeholder="Link"
               className="w-full px-3 py-2 border border-gray-300 rounded-md mb-2"
             />
-            <button onClick={() => removeBannerItem(index)} className="text-red-600 text-sm">
+            <button type="button" onClick={() => removeBannerItem(index)} className="text-red-600 text-sm">
               Remove
             </button>
           </div>
         ))}
 
-        <button onClick={addBannerItem} className="bg-gray-200 px-3 py-1 rounded text-sm mt-2">
+        <button type="button" onClick={addBannerItem} className="bg-gray-200 px-3 py-1 rounded text-sm mt-2">
           Add Banner Item
         </button>
       </div>

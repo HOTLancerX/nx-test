@@ -4,7 +4,11 @@ export default async function Header() {
   const settings = await Settings()
 
   return (
-    <header className="bg-white shadow">
+    <div className="bg-white shadow">
+      <div 
+        className="block"
+        dangerouslySetInnerHTML={{ __html: settings.ads-1 }} 
+      />
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between h-16">
           <div className="flex items-center">
@@ -24,6 +28,6 @@ export default async function Header() {
           </div>
         </div>
       </div>
-    </header>
+    </div>
   )
 }

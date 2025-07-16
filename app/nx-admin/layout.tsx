@@ -78,6 +78,12 @@ export default function RootLayout({
                 >
                   Settings
                 </Link>
+                <Link
+                  href="/nx-admin/ads"
+                  className="text-gray-700 hover:text-gray-900 px-3 py-2 rounded-md text-sm font-medium"
+                >
+                  Ads
+                </Link>
                 <button
                   onClick={() => {
                     document.cookie = "auth-token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;"
