@@ -5,6 +5,8 @@ import News from "./News";
 import Banner from "./Banner";
 import Hero from "./Hero";
 import ContactUs from "./ContactUs";
+import Product from "./Product";
+
 
 interface Props {
   id: string;
@@ -54,6 +56,7 @@ export default function Layout({ id }: Props) {
             {item.type === 'news' && <News settings={item.settings} />}
             {item.type === 'banner' && <Banner settings={item.settings} />}
             {item.type === 'hero' && <Hero settings={item.settings} />}
+            {item.type === 'product' && <Product settings={item.settings} />}
             {item.type === 'contact' && <ContactUs {...item.settings} onSubmit={async (data: any) => console.log(data)} />}
           </div>
         ))}

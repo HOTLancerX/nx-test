@@ -127,13 +127,14 @@ function ContactFieldsEditor({
     onChange([
       ...fields,
       {
-        type: "text",
+        id: Date.now(),
+        type: "text", // This line is causing the error.
         label: "",
         placeholder: "",
         required: false,
         desktopWidth: "md:w-full",
         mobileWidth: "w-full",
-      },
+      }
     ]);
   };
 
