@@ -42,8 +42,14 @@ export default function ProductSettingsForm({ settings, onChange }: ProductSetti
 
   const removeProduct = (index: number) => {
     const newProducts = settings.products.filter((_, i) => i !== index);
+
+    // Prevent invalid tab index after removal
+    const newActiveTab = Math.max(0, index - 1);
+
     onChange({ ...settings, products: newProducts });
+    setActiveTab(newActiveTab);
   };
+
 
   return (
     <div className="space-y-4">
@@ -109,7 +115,7 @@ export default function ProductSettingsForm({ settings, onChange }: ProductSetti
           </button>
         </div>
 
-        {settings.products.length > 0 && (
+        {settings.products.length > 0 && settings.products[activeTab] && (
           <div className="border p-4 rounded-lg">
             <div className="flex justify-between items-center mb-4">
               <label className="flex items-center">

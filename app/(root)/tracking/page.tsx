@@ -144,13 +144,13 @@ export default function OrderTrackingPage() {
                         <span className="font-medium">Name:</span> {order.user.name}
                       </p>
                       <p>
-                        <span className="font-medium">Email:</span> {order.user.email}
+                        <span className="font-medium">Email:</span> {order.user.email.replace(/^(.).+(@.+)$/, '$1***$2')}
                       </p>
                       <p>
-                        <span className="font-medium">Phone:</span> {order.user.phone}
+                        <span className="font-medium">Phone:</span> {order.user.phone.replace(/^(\d{4})\d{4}(\d{3})$/, '$1****$2')}
                       </p>
                       <p>
-                        <span className="font-medium">Address:</span> {order.user.address}
+                        <span className="font-medium">Address:</span> {'********' + order.user.address.slice(8)}
                       </p>
                     </div>
                   </div>

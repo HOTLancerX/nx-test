@@ -85,6 +85,18 @@ export default function RootLayout({
                   Ads
                 </Link>
                 <Link
+                  href="/nx-admin/order"
+                  className="text-gray-700 hover:text-gray-900 px-3 py-2 rounded-md text-sm font-medium"
+                >
+                  Orders
+                </Link>
+                <Link
+                  href="/nx-admin/tools"
+                  className="text-gray-700 hover:text-gray-900 px-3 py-2 rounded-md text-sm font-medium"
+                >
+                  Tools
+                </Link>
+                <Link
                   href="/nx-admin/contact"
                   className="text-gray-700 hover:text-gray-900 px-3 py-2 rounded-md text-sm font-medium"
                 >
