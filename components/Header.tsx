@@ -1,31 +1,22 @@
 import { Settings } from "@/lib/settings"
+import Link from "next/link"
+import Menu from "./Menu"
 
 export default async function Header() {
   const settings = await Settings()
 
   return (
-    <div className="bg-white shadow">
+    <div className="bg-white">
       <div 
         className="container flex justify-center mx-auto"
         dangerouslySetInnerHTML={{ __html: settings.ads_1 }} 
       />
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between h-16">
-          <div className="flex items-center">
-            <h1 className="text-xl font-semibold text-gray-900">{settings.logo || "NX CMS"}</h1>
+      <div className="container mx-auto">
+        <div className="flex flex-wrap md:flex-row flex-col">
+          <Link href="/" className="text-xl text-nowrap font-semibold text-gray-900">{settings.logo || "NX CMS"}</Link>
+          <div>
           </div>
-          <div className="flex items-center">
-            {settings.siteurl && (
-              <a
-                href={settings.siteurl}
-                className="text-blue-600 hover:text-blue-800 ml-4"
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                Visit Site
-              </a>
-            )}
-          </div>
+          <Menu location="main" style="horizontal" className="border-b pb-4" />
         </div>
       </div>
     </div>
