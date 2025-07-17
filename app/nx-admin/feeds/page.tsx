@@ -114,7 +114,7 @@ export default function FeedsPage() {
   }
 
   return (
-    <div className="px-4 sm:px-6 lg:px-8">
+    <div>
       <div className="sm:flex sm:items-center">
         <div className="sm:flex-auto">
           <h1 className="text-2xl font-semibold text-gray-900">RSS Feeds</h1>

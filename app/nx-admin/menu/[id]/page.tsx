@@ -78,7 +78,7 @@ export default function EditMenu() {
   };
 
   return (
-    <div className="max-w-4xl mx-auto p-4">
+    <div>
       <MenuForm initialData={menu} onSuccess={handleSuccess} />
     </div>
   );

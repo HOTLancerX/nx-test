@@ -6,7 +6,7 @@ export default function AddPost() {
   const router = useRouter()
 
   return (
-    <div className="px-4 sm:px-6 lg:px-8 py-8">
+    <div>
       <div className="mb-8">
         <h1 className="text-2xl font-bold text-gray-900">Add New Post</h1>
         <p className="mt-2 text-sm text-gray-600">

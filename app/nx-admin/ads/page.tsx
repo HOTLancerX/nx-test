@@ -75,43 +75,39 @@ export default function AdsPage() {
   }
 
   return (
-    <div className="px-4 sm:px-6 lg:px-8">
-      <div className="md:grid md:grid-cols-3 md:gap-6">
-        <div className="md:col-span-1">
-          <div className="px-4 sm:px-0">
-            <h3 className="text-lg font-medium leading-6 text-gray-900">Ad Management</h3>
-            <p className="mt-1 text-sm text-gray-600">
-              Configure your website's ad slots. You can insert HTML code directly into each ad box.
-            </p>
-          </div>
+    <div>
+      <div>
+        <div className="mb-4">
+          <h3 className="text-lg font-medium leading-6 text-gray-900">Ad Management</h3>
+          <p className="mt-1 text-sm text-gray-600">
+            Configure your website's ad slots. You can insert HTML code directly into each ad box.
+          </p>
         </div>
-        <div className="mt-5 md:mt-0 md:col-span-2">
+        <div>
           <form onSubmit={handleSubmit}>
             <div className="shadow sm:rounded-md sm:overflow-hidden">
-              <div className="px-4 py-5 bg-white space-y-6 sm:p-6">
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                  {Array.from({ length: NUM_ADS }, (_, i) => i + 1).map((num) => {
-                    const adKey = `ads_${num}`
-                    return (
-                      <div key={adKey} className="border border-gray-200 rounded-md p-4">
-                        <h4 className="text-base font-medium text-gray-900 mb-2">{adKey.replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase())}</h4>
-                        <div>
-                          <label htmlFor={adKey} className="sr-only">
-                            Ad Content for {adKey}
-                          </label>
-                          <textarea
-                            id={adKey}
-                            rows={3}
-                            value={adSettings[adKey] || ""}
-                            onChange={(e) => handleChange(adKey, e.target.value)}
-                            className="focus:ring-blue-500 focus:border-blue-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md px-3 py-2 border"
-                            placeholder="Enter HTML code for your ad"
-                          />
-                        </div>
+              <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                {Array.from({ length: NUM_ADS }, (_, i) => i + 1).map((num) => {
+                  const adKey = `ads_${num}`
+                  return (
+                    <div key={adKey} className="bg-white rounded-md p-4">
+                      <h4 className="text-base font-medium text-gray-900 mb-2">{adKey.replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase())}</h4>
+                      <div>
+                        <label htmlFor={adKey} className="sr-only">
+                          Ad Content for {adKey}
+                        </label>
+                        <textarea
+                          id={adKey}
+                          rows={3}
+                          value={adSettings[adKey] || ""}
+                          onChange={(e) => handleChange(adKey, e.target.value)}
+                          className="focus:ring-blue-500 focus:border-blue-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md px-3 py-2 border"
+                          placeholder="Enter HTML code for your ad"
+                        />
                       </div>
-                    )
-                  })}
-                </div>
+                    </div>
+                  )
+                })}
               </div>
 
               <div className="px-4 py-3 bg-gray-50 text-right sm:px-6">

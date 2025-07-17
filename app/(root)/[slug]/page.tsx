@@ -7,16 +7,17 @@ import { notFound } from 'next/navigation'
 import Layout from '@/components/layout/Layout'
 
 type Params = {
-  params: {
-    slug: string
-  }
+  params: Promise<{ slug: string }>
 }
 
+// ✅ Fix: await `params` before using slug
 export async function generateMetadata({ params }: Params): Promise<Metadata> {
+  const { slug } = await params
   const settings = await Settings()
   const { db } = await connectToDatabase()
+
   const page = await db.collection<NxPost>('nx_posts').findOne({
-    slug: params.slug,
+    slug,
     type: 'page',
     status: 'publish',
   })
@@ -38,15 +39,18 @@ export async function generateMetadata({ params }: Params): Promise<Metadata> {
       publishedTime: page.date?.toISOString?.(),
     },
     alternates: {
-      canonical: `${process.env.NEXT_PUBLIC_APP_URL}/${params.slug}`,
+      canonical: `${process.env.NEXT_PUBLIC_APP_URL}/${slug}`,
     },
   }
 }
 
+// ✅ Fix: await `params` here too
 export default async function Page({ params }: Params) {
+  const { slug } = await params
   const { db } = await connectToDatabase()
+
   const page = await db.collection<NxPost>('nx_posts').findOne({
-    slug: params.slug,
+    slug,
     type: 'page',
     status: 'publish',
   })
@@ -54,7 +58,7 @@ export default async function Page({ params }: Params) {
   if (!page) return notFound()
 
   return (
-    <article className="max-w-4xl mx-auto py-8 px-4">
+    <article className="container mx-auto">
       {page.layout && (
         <Layout id={page.layout} />
       )}

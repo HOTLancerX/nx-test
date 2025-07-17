@@ -213,7 +213,7 @@ export default function PostForm({ type, initialData, onSuccess }: PostFormProps
   }
 
   return (
-    <form onSubmit={handleSubmit} className="max-w-4xl mx-auto p-4 space-y-6">
+    <form onSubmit={handleSubmit} className="space-y-6">
       {/* Title */}
       <div>
         <label htmlFor="title" className="block mb-1 font-semibold">
@@ -306,7 +306,6 @@ export default function PostForm({ type, initialData, onSuccess }: PostFormProps
             value={formData.layout}
             onChange={(e) => setFormData({ ...formData, layout: e.target.value })}
             className="w-full px-4 py-2 border border-gray-300 rounded-md"
-            required
           >
             <option value="">Select a layout</option>
             {layouts.map((layout) => (

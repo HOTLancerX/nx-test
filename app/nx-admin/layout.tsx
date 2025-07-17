@@ -12,12 +12,12 @@ export default function RootLayout({
   const { settings } = useSettings()
   return (
     <PrivateLayout>
-      <div className="min-h-screen bg-gray-50">
-        <nav className="bg-white shadow-sm border-b">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div className="bg-gray-50 container mx-auto">
+        <nav className="bg-white shadow">
+          <div className="">
             <div className="flex justify-between h-16">
               <div className="flex items-center">
-                <h1 className="text-xl font-semibold text-gray-900">NX Admin Panel</h1>
+                <Link href="/nx-admin" className="text-xl font-semibold text-gray-900">NX Admin</Link>
               </div>
               <div className="flex items-center space-x-4">
                 {settings.siteurl && (
@@ -115,7 +115,7 @@ export default function RootLayout({
             </div>
           </div>
         </nav>
-        <main className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">{children}</main>
+        <main className="py-4">{children}</main>
       </div>
     </PrivateLayout>
   )
