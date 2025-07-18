@@ -60,11 +60,11 @@ export interface ContactSettings {
 // Updated LayoutItem type to include contact
 export type LayoutItem = {
   id: string;
-  type: 'news' | 'banner' | 'hero' | 'contact' | 'product';
+  type: 'news' | 'banner' | 'hero' | 'contact' | 'product' | 'hosting';
   position: number;
   desktopWidth: string;
   mobileWidth: string;
-  settings: NewsSettings | BannerSettings | HeroSettings | ContactSettings | ProductSettings;
+  settings: NewsSettings | BannerSettings | HeroSettings | ContactSettings | ProductSettings | HostingSettings;
 };
 
 // Existing NxLayout interface remains unchanged
@@ -104,4 +104,31 @@ export interface ProductSettings {
   phone: string;
   address: string;
   products: ProductItem[];
+}
+
+
+// schema/nx_layouts.ts
+export interface HostingPrice {
+  price: number;
+  month: string;
+  description: string;
+  month_number: number;
+}
+
+export interface HostingFeature {
+  title: string;
+  label: string;
+  label_color: string;
+  prices: HostingPrice[];
+  link_name: string;
+  link_url: string;
+  list_items: string[];
+}
+
+export interface HostingSettings {
+  title: string;
+  description: string;
+  desktop_grid: any;
+  mobile_grid: number;
+  features: HostingFeature[];
 }

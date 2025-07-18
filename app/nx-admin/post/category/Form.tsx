@@ -1,5 +1,4 @@
 'use client'
-
 import { useState, useEffect } from 'react'
 import dynamic from 'next/dynamic'
 import 'suneditor/dist/css/suneditor.min.css'
@@ -21,10 +20,21 @@ interface CategoryFormProps {
   onSuccess?: () => void
 }
 
+interface Category {
+  _id: string
+  title: string
+  parent_id?: string | null
+}
+
+interface Layout {
+  _id: string
+  title: string
+}
+
 export default function CategoryForm({ type, initialData, onSuccess }: CategoryFormProps) {
   const [loading, setLoading] = useState(false)
-  const [categories, setCategories] = useState<any[]>([])
-  const [layouts, setLayouts] = useState<any[]>([])
+  const [categories, setCategories] = useState<Category[]>([])
+  const [layouts, setLayouts] = useState<Layout[]>([])
 
   const [formData, setFormData] = useState({
     title: initialData?.title || '',
@@ -116,6 +126,22 @@ export default function CategoryForm({ type, initialData, onSuccess }: CategoryF
     setFormData({ ...formData, gallery: newGallery })
   }
 
+  const getParentCategoryOptions = () => {
+    return categories.filter(category => 
+      category._id !== initialData?._id &&
+      (!initialData?._id || !isChildOfCurrentCategory(category._id)))
+  }
+
+  const isChildOfCurrentCategory = (categoryId: string): boolean => {
+    if (!initialData?._id) return false
+    const checkChildren = (parentId: string): boolean => {
+      return categories.some(cat => 
+        cat.parent_id === parentId && 
+        (cat._id === categoryId || checkChildren(cat._id)))
+    }
+    return checkChildren(initialData._id)
+  }
+
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
       <div>
@@ -140,6 +166,77 @@ export default function CategoryForm({ type, initialData, onSuccess }: CategoryF
       </div>
 
       <div>
+        <label className="block mb-1 font-semibold">Parent Category</label>
+        <select
+          value={formData.parent_id || ''}
+          onChange={(e) => setFormData({ 
+            ...formData, 
+            parent_id: e.target.value || null 
+          })}
+          className="w-full px-4 py-2 border border-gray-300 rounded-md"
+        >
+          <option value="">No parent category</option>
+          {getParentCategoryOptions().map((category) => (
+            <option key={category._id} value={category._id}>
+              {category.title}
+            </option>
+          ))}
+        </select>
+      </div>
+
+      {/* Featured Image URL */}
+      <div>
+        <label htmlFor="images" className="block mb-1 font-semibold">
+          Featured Image URL
+        </label>
+        <input
+          id="images"
+          type="url"
+          value={formData.images}
+          onChange={(e) => setFormData({ ...formData, images: e.target.value })}
+          className="w-full px-4 py-2 border border-gray-300 rounded-md"
+          placeholder="https://example.com/featured-image.jpg"
+        />
+        {formData.images && (
+          <img
+            src={formData.images || "/placeholder.svg"}
+            alt="Featured Image Preview"
+            className="mt-2 max-w-full h-auto rounded-md"
+          />
+        )}
+      </div>
+
+      {/* Gallery URLs */}
+      <div>
+        <label className="block mb-1 font-semibold">Gallery URLs</label>
+        {formData.gallery.map((url, index) => (
+          <div key={index} className="flex items-center mb-2">
+            <input
+              type="url"
+              value={url}
+              onChange={(e) => handleGalleryChange(index, e.target.value)}
+              className="flex-1 px-4 py-2 border border-gray-300 rounded-md"
+              placeholder="https://example.com/gallery-image.jpg"
+            />
+            <button
+              type="button"
+              onClick={() => removeGalleryItem(index)}
+              className="ml-2 text-red-600 hover:text-red-800"
+            >
+              Remove
+            </button>
+          </div>
+        ))}
+        <button
+          type="button"
+          onClick={addGalleryItem}
+          className="px-4 py-2 bg-gray-200 text-gray-800 rounded-md hover:bg-gray-300"
+        >
+          Add Gallery Image
+        </button>
+      </div>
+
+      <div>
         <label className="block mb-1 font-semibold">Content</label>
         <SunEditor
           defaultValue={formData.content}
@@ -157,23 +254,23 @@ export default function CategoryForm({ type, initialData, onSuccess }: CategoryF
         />
       </div>
 
-      
-      <div>
-        <label className="block mb-1 font-semibold">Layout</label>
-        <select
-          value={formData.layout}
-          onChange={(e) => setFormData({ ...formData, layout: e.target.value })}
-          className="w-full px-4 py-2 border border-gray-300 rounded-md"
-          required
-        >
-          <option value="">Select a layout</option>
-          {layouts.map((layout) => (
-            <option key={layout._id} value={layout._id}>
-              {layout.title}
-            </option>
-          ))}
-        </select>
-      </div>
+      {type === 'post_category' && (
+        <div>
+          <label className="block mb-1 font-semibold">Layout</label>
+          <select
+            value={formData.layout}
+            onChange={(e) => setFormData({ ...formData, layout: e.target.value })}
+            className="w-full px-4 py-2 border border-gray-300 rounded-md"
+          >
+            <option value="">Select a layout</option>
+            {layouts.map((layout) => (
+              <option key={layout._id} value={layout._id}>
+                {layout.title}
+              </option>
+            ))}
+          </select>
+        </div>
+      )}
 
       <div className="flex justify-end space-x-3">
         <button
