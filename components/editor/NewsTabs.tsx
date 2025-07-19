@@ -58,8 +58,8 @@ export default function NewsTabsForm({ settings, onChange }: NewsTabsFormProps) 
           <div className="text-sm text-gray-500">Loading categories...</div>
         ) : (
           <div className="space-y-2 max-h-60 overflow-y-auto p-2 border rounded">
-            {categories.map((cat) => (
-              <div key={cat._id} className="flex items-center">
+            {categories.map((cat, idx) => (
+              <div key={`${cat._id}-${idx}`} className="flex items-center">
                 <input
                   type="checkbox"
                   id={`cat-${cat._id}`}

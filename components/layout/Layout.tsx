@@ -59,7 +59,7 @@ export default function Layout({ id }: Props) {
             {item.type === 'hero' && <Hero settings={item.settings} />}
             {item.type === 'product' && <Product settings={item.settings} />}
             {item.type === 'hosting' && <Hosting settings={item.settings} />}
-            {item.type === 'NewsTabs' && (
+            {item.type === 'news-tabs' && (
               <NewsTabs settings={item.settings} />
             )}
             {item.type === 'contact' && <ContactUs {...item.settings} onSubmit={async (data: any) => console.log(data)} />}
