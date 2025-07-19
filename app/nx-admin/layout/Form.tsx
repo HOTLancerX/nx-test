@@ -1,7 +1,7 @@
 // app/nx-admin/layout/Form.tsx
 "use client"
 import { useState } from "react";
-import { NewsSettings, BannerSettings, HeroSettings, LayoutItem, ContactSettings, ProductSettings, HostingSettings } from "@/schema/nx_layouts";
+import { NewsSettings, BannerSettings, NewsTabsSettings, HeroSettings, LayoutItem, ContactSettings, ProductSettings, HostingSettings } from "@/schema/nx_layouts";
 
 import NewsSettingsForm from "@/components/editor/News";
 import BannerSettingsForm from "@/components/editor/Banner";
@@ -9,6 +9,7 @@ import HeroSettingsForm from "@/components/editor/Hero";
 import ContactSettingsForm from "@/components/editor/ContactUs";
 import ProductSettingsForm from "@/components/editor/Product";
 import HostingSettingsForm from "@/components/editor/Hosting";
+import NewsTabsForm from "@/components/editor/NewsTabs"
 import Image from "next/image";
 
 interface LayoutFormProps {
@@ -25,7 +26,7 @@ export default function LayoutForm({ initialData, onSuccess }: LayoutFormProps) 
   const [items, setItems] = useState<LayoutItem[]>(initialData?.items || []);
   const [loading, setLoading] = useState(false);
 
-  const addItem = (type: 'news' | 'banner' | 'hero' | 'contact' | 'product' | 'hosting') => {
+  const addItem = (type: 'news' | 'banner' | 'hero' | 'contact' | 'product' | 'hosting' | 'news-tabs') => {
     const baseItem: Omit<LayoutItem, 'settings'> = {
       id: `item-${Date.now()}`,
       type,
@@ -34,7 +35,7 @@ export default function LayoutForm({ initialData, onSuccess }: LayoutFormProps) 
       mobileWidth: 'w-full'
     };
 
-    let settings: NewsSettings | BannerSettings | HeroSettings | ContactSettings | ProductSettings | HostingSettings;
+    let settings: NewsSettings | BannerSettings | HeroSettings | ContactSettings | ProductSettings | HostingSettings | NewsTabsSettings;
 
     switch(type) {
       case 'news':
@@ -109,6 +110,15 @@ export default function LayoutForm({ initialData, onSuccess }: LayoutFormProps) 
           }]
         };
         break;
+        case 'news-tabs':
+          settings = {
+            title: '',
+            categories: [],
+            postLimit: 5,
+            desktopGrid: 4,
+            mobileGrid: 1
+          };
+          break;
     }
 
     setItems([...items, { ...baseItem, settings }]);
@@ -263,6 +273,12 @@ export default function LayoutForm({ initialData, onSuccess }: LayoutFormProps) 
                 onChange={(settings) => updateItem(item.id, { settings })}
               />
             )}
+            {item.type === 'news-tabs' && (
+              <NewsTabsForm 
+                settings={item.settings as NewsTabsSettings}
+                onChange={(settings) => updateItem(item.id, { settings })}
+              />
+            )}
             <button
               type="button"
               onClick={() => removeItem(item.id)}
@@ -290,7 +306,7 @@ export default function LayoutForm({ initialData, onSuccess }: LayoutFormProps) 
 }
 
 // Add Layout Popup component
-const AddLayoutPopup = ({ onAdd }: { onAdd: (type: 'news' | 'banner' | 'hero' | 'hosting' | 'contact' | 'product') => void }) => {
+const AddLayoutPopup = ({ onAdd }: { onAdd: (type: 'news' | 'banner' | 'hero' | 'hosting' | 'contact' | 'product' | 'news-tabs') => void }) => {
   const [isOpen, setIsOpen] = useState(false);
 
   const items = [
@@ -329,6 +345,12 @@ const AddLayoutPopup = ({ onAdd }: { onAdd: (type: 'news' | 'banner' | 'hero' | 
       icon: "/icon/product.jpg",
       title: "Hosting",
       type: "hosting" as const
+    },
+    {
+      id: 6,
+      icon: "/icon/news-tabs.jpg", 
+      title: "News Tabs",
+      type: "news-tabs" as const
     }
   ];
 

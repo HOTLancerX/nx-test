@@ -60,11 +60,11 @@ export interface ContactSettings {
 // Updated LayoutItem type to include contact
 export type LayoutItem = {
   id: string;
-  type: 'news' | 'banner' | 'hero' | 'contact' | 'product' | 'hosting';
+  type: 'news' | 'banner' | 'hero' | 'contact' | 'product' | 'hosting' | 'news-tabs';
   position: number;
   desktopWidth: string;
   mobileWidth: string;
-  settings: NewsSettings | BannerSettings | HeroSettings | ContactSettings | ProductSettings | HostingSettings;
+  settings: NewsSettings | BannerSettings | HeroSettings | ContactSettings | ProductSettings | HostingSettings | any;
 };
 
 // Existing NxLayout interface remains unchanged
@@ -131,4 +131,16 @@ export interface HostingSettings {
   desktop_grid: any;
   mobile_grid: number;
   features: HostingFeature[];
+}
+
+export interface NewsTabsSettings {
+  title: string;
+  categories: {
+    _id: string;
+    title: string;
+  }[];
+  postLimit: number;
+  desktopGrid: number;
+  mobileGrid: number;
+  style?: number;
 }
