@@ -30,6 +30,7 @@ export default function LayoutForm({ initialData, onSuccess }: LayoutFormProps) 
     const baseItem: Omit<LayoutItem, 'settings'> = {
       id: `item-${Date.now()}`,
       type,
+      bg_color: '#ffffff',
       position: items.length + 1,
       desktopWidth: 'md:w-full',
       mobileWidth: 'w-full'
@@ -185,7 +186,7 @@ export default function LayoutForm({ initialData, onSuccess }: LayoutFormProps) 
           <div key={item.id} className="border p-4 rounded-lg">
             <h3 className="text-lg font-medium capitalize">{item.type} Section</h3>
             
-            <div className="mt-2 grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="mt-2 grid grid-cols-2 md:grid-cols-4 gap-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   Position
@@ -230,6 +231,18 @@ export default function LayoutForm({ initialData, onSuccess }: LayoutFormProps) 
                   <option value="w-1/3">One Third</option>
                   <option value="w-2/3">Two Thirds</option>
                 </select>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  BG Color
+                </label>
+                <input
+                  type="color"
+                  value={item.bg_color || "#ffffff"}
+                  onChange={(e) => updateItem(item.id, { bg_color: e.target.value })}
+                  className="w-full px-1 h-10 border border-gray-300 rounded-md"
+                />
               </div>
             </div>
 

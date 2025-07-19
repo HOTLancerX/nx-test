@@ -52,7 +52,8 @@ export default function Layout({ id }: Props) {
         .map((item: any) => (
           <div 
             key={item.id}
-            className={`${item.mobileWidth} ${item.desktopWidth}`}
+            className={`${item.mobileWidth} ${item.desktopWidth} py-2`}
+            style={{ backgroundColor: item.bg_color || '#ffffff' }}
           >
             {item.type === 'news' && <News settings={item.settings} />}
             {item.type === 'banner' && <Banner settings={item.settings} />}

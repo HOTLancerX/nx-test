@@ -1,6 +1,8 @@
 // components/layout/NewsStyles.tsx
 import Link from 'next/link'
 import Image from 'next/image'
+import Slider from 'react-slick'
+import { useRef } from 'react'
 
 interface Post {
   _id: string
@@ -242,6 +244,106 @@ export function NewsStyle3({ posts, desktopGrid }: NewsStylesProps) {
           </div>
         </div>
       )}
+    </div>
+  )
+}
+
+export function NewsStyle4({ posts, mobileGrid, desktopGrid }: NewsStylesProps) {
+  const sliderRef = useRef<Slider>(null)
+
+  const settings = {
+    dots: false,
+    infinite: true,
+    speed: 500,
+    slidesToShow: desktopGrid,
+    slidesToScroll: desktopGrid,
+    arrows: false, // We'll use our custom arrows
+    responsive: [
+      {
+        breakpoint: 768,
+        settings: {
+          slidesToShow: mobileGrid,
+          slidesToScroll: mobileGrid
+        }
+      }
+    ]
+  }
+
+  const goToNext = () => {
+    sliderRef.current?.slickNext()
+  }
+
+  const goToPrev = () => {
+    sliderRef.current?.slickPrev()
+  }
+
+  return (
+    <div className="relative news-carousel">
+      {/* Custom Arrow Buttons */}
+      <button 
+        onClick={goToPrev}
+        className="absolute left-0 top-1/2 z-10 -translate-y-1/2 bg-white p-2 rounded-full shadow-md hover:bg-gray-100 transition-colors"
+        aria-label="Previous slide"
+      >
+        <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+        </svg>
+      </button>
+      
+      <button 
+        onClick={goToNext}
+        className="absolute right-0 top-1/2 z-10 -translate-y-1/2 bg-white p-2 rounded-full shadow-md hover:bg-gray-100 transition-colors"
+        aria-label="Next slide"
+      >
+        <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+        </svg>
+      </button>
+
+      <Slider ref={sliderRef} {...settings}>
+        {posts.map(post => (
+          <div key={post._id} className="px-2">
+            <div className="rounded-lg overflow-hidden hover:shadow-lg transition-shadow h-full">
+              <div className="w-full h-48 rounded-t-lg">
+                {post.images ? (
+                  <Image
+                    src={post.images || "/placeholder.svg"}
+                    alt={post.title}
+                    width={800}
+                    height={300}
+                    className="w-full h-full object-cover"
+                    sizes="(max-width: 768px) 100vw, 33vw"
+                  />
+                ) : (
+                  <div className="w-full h-full bg-gray-200 rounded-lg flex items-center justify-center">
+                    <svg className="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
+                      />
+                    </svg>
+                  </div>
+                )}
+              </div>
+              <div className="p-3">
+                <h3 className="font-semibold text-base mb-2">
+                  <Link href={`/blog/${post.slug}`} className="hover:text-blue-600 line-clamp-2">
+                    {post.title}
+                  </Link>
+                </h3>
+                <p className="text-gray-600 text-sm mb-2">
+                  {new Date(post.date).toLocaleDateString()}
+                </p>
+                <p className="text-gray-700 line-clamp-2">
+                  {post.content.replace(/<[^>]*>/g, '').substring(0, 150)}...
+                </p>
+              </div>
+            </div>
+          </div>
+        ))}
+      </Slider>
     </div>
   )
 }

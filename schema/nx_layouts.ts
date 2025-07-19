@@ -62,6 +62,7 @@ export type LayoutItem = {
   id: string;
   type: 'news' | 'banner' | 'hero' | 'contact' | 'product' | 'hosting' | 'news-tabs';
   position: number;
+  bg_color: string;
   desktopWidth: string;
   mobileWidth: string;
   settings: NewsSettings | BannerSettings | HeroSettings | ContactSettings | ProductSettings | HostingSettings | any;

@@ -1,6 +1,6 @@
 // components/layout/News.tsx
 import { useEffect, useState } from "react";
-import { NewsStyle1, NewsStyle2, NewsStyle3 } from "./NewsStyles";
+import { NewsStyle1, NewsStyle2, NewsStyle3, NewsStyle4 } from "./NewsStyles";
 
 interface NewsProps {
   settings: {
@@ -74,6 +74,10 @@ export default function News({ settings }: NewsProps) {
 
       {settings.style === 3 && (
         <NewsStyle3 posts={posts} desktopGrid={settings.desktopGrid} mobileGrid={settings.mobileGrid} />
+      )}
+
+      {settings.style === 4 && (
+        <NewsStyle4 posts={posts} desktopGrid={settings.desktopGrid} mobileGrid={settings.mobileGrid} />
       )}
     </div>
   );

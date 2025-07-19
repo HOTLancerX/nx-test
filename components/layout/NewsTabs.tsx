@@ -2,7 +2,7 @@
 "use client"
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
-import { NewsStyle1, NewsStyle2, NewsStyle3 } from './NewsStyles'
+import { NewsStyle1, NewsStyle2, NewsStyle3, NewsStyle4 } from './NewsStyles'
 
 interface NewsTabsProps {
   settings: {
@@ -70,6 +70,8 @@ export default function NewsTabs({ settings }: NewsTabsProps) {
     if (!currentPosts.length) return null
 
     switch (settings.style) {
+      case 4:
+        return <NewsStyle4 posts={currentPosts} desktopGrid={settings.desktopGrid} mobileGrid={settings.mobileGrid} />
       case 2:
         return <NewsStyle2 posts={currentPosts} desktopGrid={settings.desktopGrid} mobileGrid={settings.mobileGrid} />
       case 3:
