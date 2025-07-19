@@ -4,6 +4,7 @@ import type React from "react"
 import { useRouter } from "next/navigation"
 import dynamic from "next/dynamic"
 import "suneditor/dist/css/suneditor.min.css"
+import Medias from "@/components/Medias"
 
 const SunEditor = dynamic(() => import("suneditor-react"), { ssr: false })
 
@@ -322,51 +323,21 @@ export default function PostForm({ type, initialData, onSuccess }: PostFormProps
         <label htmlFor="images" className="block mb-1 font-semibold">
           Featured Image URL
         </label>
-        <input
-          id="images"
-          type="url"
+        <Medias
+          multiple={false}
           value={formData.images}
           onChange={(e) => setFormData({ ...formData, images: e.target.value })}
-          className="w-full px-4 py-2 border border-gray-300 rounded-md"
-          placeholder="https://example.com/featured-image.jpg"
         />
-        {formData.images && (
-          <img
-            src={formData.images || "/placeholder.svg"}
-            alt="Featured Image Preview"
-            className="mt-2 max-w-full h-auto rounded-md"
-          />
-        )}
       </div>
 
       {/* Gallery URLs */}
       <div>
         <label className="block mb-1 font-semibold">Gallery URLs</label>
-        {formData.gallery.map((url: string, index: number) => (
-          <div key={index} className="flex items-center mb-2">
-            <input
-              type="url"
-              value={url}
-              onChange={(e) => handleGalleryChange(index, e.target.value)}
-              className="flex-1 px-4 py-2 border border-gray-300 rounded-md"
-              placeholder="https://example.com/gallery-image.jpg"
-            />
-            <button
-              type="button"
-              onClick={() => removeGalleryItem(index)}
-              className="ml-2 text-red-600 hover:text-red-800"
-            >
-              Remove
-            </button>
-          </div>
-        ))}
-        <button
-          type="button"
-          onClick={addGalleryItem}
-          className="px-4 py-2 bg-gray-200 text-gray-800 rounded-md hover:bg-gray-300"
-        >
-          Add Gallery Image
-        </button>
+        <Medias
+          multiple={true}
+          value={formData.gallery}
+          onChange={(e) => setFormData({ ...formData, gallery: e.target.value })}
+        />
       </div>
 
       {/* Manual static meta field: Hello */}

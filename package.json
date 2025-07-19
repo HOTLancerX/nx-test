@@ -11,6 +11,8 @@
     "seed-settings": "node scripts/defaultsettings.js"
   },
   "dependencies": {
+    "@aws-sdk/client-s3": "^3.848.0",
+    "@headlessui/react": "^2.2.4",
     "bcryptjs": "^2.4.3",
     "html2canvas": "^1.4.1",
     "jsonwebtoken": "^9.0.0",
