@@ -154,6 +154,9 @@ export default async function BlogPost({ params }: { params: Promise<{ slug: str
                   {author.username}
                 </Link>
               </div>
+              <Link href={`/me/chat/${author._id.toString()}?post=${post.slug}`} className="font-medium hover:underline">
+                Chat
+              </Link>
             </div>
           )}
 

@@ -15,6 +15,7 @@ export default function Sidebar({ user }: SidebarProps) {
         { href: "/me/list", label: "My Posts" },
         { href: "/me/list/add", label: "Add New Post" },
         { href: "/me/settings", label: "Settings" },
+        { href: "/me/chat", label: "Chat" },
     ];
 
     return (
