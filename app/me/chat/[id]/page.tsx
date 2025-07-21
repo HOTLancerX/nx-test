@@ -172,11 +172,11 @@ export default function ChatPage() {
           {msgs.map((m) => (
             <div
               key={m._id}
-              className={`flex mb-1 ${m.from === user._id ? "justify-start" : "justify-end"}`}
+              className={`flex mb-1 ${m.from === id ? "justify-end" : "justify-start"}`}
             >
               <div
                 className={`max-w-xs px-3 py-2 rounded ${
-                  m.from === user._id
+                  m.from === id
                     ? "bg-gray-200 text-gray-900"
                     : "bg-blue-500 text-white"
                 } ${m.seen && m.from !== user._id ? "opacity-60" : ""}`}
@@ -271,3 +271,4 @@ export default function ChatPage() {
     </div>
   );
 }
+
