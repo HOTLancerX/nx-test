@@ -1,6 +1,6 @@
 // app/me/chat/[id]/page.tsx
 "use client";
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState, useRef, useCallback } from "react";
 import { useParams, useSearchParams } from "next/navigation";
 import Image from "next/image";
 
@@ -42,6 +42,7 @@ export default function ChatPage() {
   const [input, setInput]   = useState("");
   const [q, setQ]           = useState("");
   const [showInfo, setShowInfo] = useState(false);
+  const [postPreview, setPostPreview] = useState<{ title: string; images?: string } | null>(null);
 
   const bottomRef = useRef<HTMLDivElement>(null);
 
@@ -58,9 +59,11 @@ export default function ChatPage() {
     fetch(`/api/me/chat/${id}`)
       .then((r) => r.json())
       .then(setMsgs);
-    fetch(`/api/users/${id}`)
+    fetch(`/api/users/list/${id}`)
       .then((r) => r.json())
-      .then(setUser);
+      .then((data) => {
+        setUser(data.user);
+      });
   }, [id]);
 
   /* ---------- Polling for messages ---------- */
@@ -87,6 +90,7 @@ export default function ChatPage() {
       body: JSON.stringify(type ? { type, postMeta: payload } : { text: input }),
     });
     if (!type) setInput("");
+    setPostPreview(null);
   };
 
   /* ---------- URL shortcuts ---------- */
@@ -95,9 +99,14 @@ export default function ChatPage() {
       setInput(textParam);
       send();
     }
-    if (postParam) send("post", { type: "post", _id: postParam });
+    if (postParam) {
+      send("post", { type: "post", _id: postParam });
+      fetch(`/api/post/${postParam}`)
+        .then((r) => r.json())
+        .then((data) => setPostPreview({ title: data.title, images: data.images }));
+    }
     if (pageParam) send("page", { type: "page", _id: pageParam });
-  }, []);
+  }, [textParam, postParam, pageParam, send]);
 
   /* ---------- Filtered list ---------- */
   const filtered = rooms.filter((u) =>
@@ -172,7 +181,7 @@ export default function ChatPage() {
           {msgs.map((m) => (
             <div
               key={m._id}
-              className={`flex mb-1 ${m.from === id ? "justify-end" : "justify-start"}`}
+              className={`flex mb-1 ${m.from === id ? "justify-start" : "justify-end"}`}
             >
               <div
                 className={`max-w-xs px-3 py-2 rounded ${
@@ -188,7 +197,7 @@ export default function ChatPage() {
                       const url = JSON.parse(m.body).fileUrl || m.body;
                       const clean = url.replace(/<[^>]*>/g, ""); // strip <url> tags
                       return /\.(jpg|jpeg|png|gif|webp)$/i.test(clean) ? (
-                        <Image width={300} height={300} src={clean} className="rounded max-w-xs" alt="attachment" />
+                        <Image width={300} height={300} src={clean || "/placeholder.svg"} className="rounded max-w-xs" alt="attachment" />
                       ) : (
                         <a href={clean} target="_blank" rel="noreferrer">
                           📁 Attachment
@@ -213,6 +222,23 @@ export default function ChatPage() {
           ))}
           <div ref={bottomRef} />
         </div>
+
+        {/* Post Preview */}
+        {postPreview && (
+          <div className="p-4 border-t">
+            <h4 className="font-semibold">Shared Post:</h4>
+            <p>{postPreview.title}</p>
+            {postPreview.images && (
+              <Image
+                src={postPreview.images || "/placeholder.svg"}
+                alt="Post Preview"
+                width={100}
+                height={75}
+                className="rounded mt-2"
+              />
+            )}
+          </div>
+        )}
 
         {/* Input bar */}
         <div className="border-t p-2 flex items-center space-x-2">
@@ -271,4 +297,3 @@ export default function ChatPage() {
     </div>
   );
 }
-
