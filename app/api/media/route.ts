@@ -3,7 +3,6 @@ import { connectToDatabase } from '@/lib/db';
 import { requireAdminAuth } from '@/lib/auth';
 import type { NxMedia, NxMediaCreateInput } from '@/schema/nx_medias';
 import { ObjectId } from 'mongodb';
-import { uploadToR2 } from '@/lib/r2';
 
 // GET endpoint for fetching media
 export async function GET(request: Request) {
