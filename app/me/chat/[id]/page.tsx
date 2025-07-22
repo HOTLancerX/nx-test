@@ -1,86 +1,153 @@
 // app/me/chat/[id]/page.tsx
-"use client";
-import { useEffect, useState, useRef, useCallback } from "react";
-import { useParams, useSearchParams } from "next/navigation";
-import Image from "next/image";
+"use client"
+import { useEffect, useState, useRef } from "react"
+import { useParams, useSearchParams } from "next/navigation"
+import Image from "next/image"
+import Link from "next/link" // Import Link for navigation
 
 /* ---------- Types ---------- */
 interface User {
-  _id: string;
-  username: string;
-  images?: string;
-  bio?: string;
-  email?: string;
-  phone?: string;
-  online: boolean;
+  _id: string
+  username: string
+  images?: string
+  bio?: string
+  email?: string
+  phone?: string
+  online: boolean
 }
 
 interface Message {
-  _id: string;
-  from: string;
-  to: string;
-  type: "text" | "post" | "page" | "file";
-  body: string;
-  fileUrl?: string;
-  seen: boolean;
-  createdAt: string;
+  _id: string
+  from: string
+  to: string
+  type: "text" | "post" | "page" | "file"
+  body: string
+  fileUrl?: string
+  seen: boolean
+  createdAt: string
+  postData?: {
+    title: string
+    images: string
+    slug: string
+  }
 }
 
 /* ---------- Component ---------- */
 export default function ChatPage() {
-  const { id } = useParams(); // already unwrapped in client component
-  const search = useSearchParams();
+  const { id } = useParams() // already unwrapped in client component
+  const search = useSearchParams()
 
-  const textParam   = search.get("text");
-  const postParam   = search.get("post");
-  const pageParam   = search.get("page");
+  const textParam = search.get("text")
+  const postParam = search.get("post")
+  const pageParam = search.get("page")
 
   /* ---------- State ---------- */
-  const [rooms, setRooms]   = useState<User[]>([]);
-  const [user, setUser]     = useState<User | null>(null);
-  const [msgs, setMsgs]     = useState<Message[]>([]);
-  const [input, setInput]   = useState("");
-  const [q, setQ]           = useState("");
-  const [showInfo, setShowInfo] = useState(false);
-  const [postPreview, setPostPreview] = useState<{ title: string; images?: string } | null>(null);
+  const [rooms, setRooms] = useState<User[]>([])
+  const [user, setUser] = useState<User | null>(null)
+  const [msgs, setMsgs] = useState<Message[]>([])
+  const [input, setInput] = useState("")
+  const [q, setQ] = useState("")
+  const [showInfo, setShowInfo] = useState(false)
 
-  const bottomRef = useRef<HTMLDivElement>(null);
+  const bottomRef = useRef<HTMLDivElement>(null)
 
   /* ---------- Fetch rooms (already-chatted users) ---------- */
-   useEffect(() => {
+  useEffect(() => {
     fetch("/api/me/chat")
       .then((r) => r.json())
-      .then((data) => setRooms(data.map((d: any) => d.user)));
-  }, []);
+      .then((data) => setRooms(data.map((d: any) => d.user)))
+  }, [])
 
   /* ---------- Fetch messages & partner profile ---------- */
   useEffect(() => {
-    if (!id) return;
-    fetch(`/api/me/chat/${id}`)
+    if (!id) return
+    const fetchMessages = async () => {
+      const response = await fetch(`/api/me/chat/${id}`)
+      const messages = await response.json()
+
+      // Enrich messages with post data
+      const enrichedMessages = await Promise.all(
+        messages.map(async (msg: Message) => {
+          if (msg.type === "post" || msg.type === "page") {
+            try {
+              const postMeta = JSON.parse(msg.body)
+              const postId = postMeta._id
+              const postResponse = await fetch(`/api/me/chat/post/${postId}`)
+              if (postResponse.ok) {
+                const postData = await postResponse.json()
+                return { ...msg, postData }
+              } else {
+                // Handle specific "Post Not Available" message from API
+                const errorData = await postResponse.json()
+                if (errorData.message === "Post Not Available") {
+                  return { ...msg, postData: { title: "Post Not Available", images: "", slug: "" } }
+                }
+                console.error(`Failed to fetch post data for ${postId}:`, errorData.message)
+                return msg
+              }
+            } catch (error) {
+              console.error("Error parsing or fetching post data:", error)
+              return msg
+            }
+          }
+          return msg
+        }),
+      )
+      setMsgs(enrichedMessages)
+    }
+
+    fetchMessages()
+
+    fetch(`/api/users/${id}`)
       .then((r) => r.json())
-      .then(setMsgs);
-    fetch(`/api/users/list/${id}`)
-      .then((r) => r.json())
-      .then((data) => {
-        setUser(data.user);
-      });
-  }, [id]);
+      .then(setUser)
+  }, [id])
 
   /* ---------- Polling for messages ---------- */
   useEffect(() => {
-    if (!id) return;
+    if (!id) return
     const iv = setInterval(() => {
       fetch(`/api/me/chat/${id}`)
         .then((r) => r.json())
-        .then(setMsgs);
-    }, 3000);
-    return () => clearInterval(iv);
-  }, [id]);
+        .then(async (messages) => {
+          // Enrich messages with post data
+          const enrichedMessages = await Promise.all(
+            messages.map(async (msg: Message) => {
+              if (msg.type === "post" || msg.type === "page") {
+                try {
+                  const postMeta = JSON.parse(msg.body)
+                  const postId = postMeta._id
+                  const postResponse = await fetch(`/api/me/chat/post/${postId}`)
+                  if (postResponse.ok) {
+                    const postData = await postResponse.json()
+                    return { ...msg, postData }
+                  } else {
+                    // Handle specific "Post Not Available" message from API
+                    const errorData = await postResponse.json()
+                    if (errorData.message === "Post Not Available") {
+                      return { ...msg, postData: { title: "Post Not Available", images: "", slug: "" } }
+                    }
+                    console.error(`Failed to fetch post data for ${postId}:`, errorData.message)
+                    return msg
+                  }
+                } catch (error) {
+                  console.error("Error parsing or fetching post data:", error)
+                  return msg
+                }
+              }
+              return msg
+            }),
+          )
+          setMsgs(enrichedMessages)
+        })
+    }, 3000)
+    return () => clearInterval(iv)
+  }, [id])
 
   /* ---------- Auto-scroll ---------- */
   useEffect(() => {
-    bottomRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [msgs]);
+    bottomRef.current?.scrollIntoView({ behavior: "smooth" })
+  }, [msgs])
 
   /* ---------- Send helpers ---------- */
   const send = async (type?: string, payload?: any) => {
@@ -88,39 +155,31 @@ export default function ChatPage() {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(type ? { type, postMeta: payload } : { text: input }),
-    });
-    if (!type) setInput("");
-    setPostPreview(null);
-  };
+    })
+    if (!type) setInput("")
+  }
 
   /* ---------- URL shortcuts ---------- */
   useEffect(() => {
     if (textParam) {
-      setInput(textParam);
-      send();
+      setInput(textParam)
+      send()
     }
-    if (postParam) {
-      send("post", { type: "post", _id: postParam });
-      fetch(`/api/post/${postParam}`)
-        .then((r) => r.json())
-        .then((data) => setPostPreview({ title: data.title, images: data.images }));
-    }
-    if (pageParam) send("page", { type: "page", _id: pageParam });
-  }, [textParam, postParam, pageParam, send]);
+    if (postParam) send("post", { type: "post", _id: postParam })
+    if (pageParam) send("page", { type: "page", _id: pageParam })
+  }, [])
 
   /* ---------- Filtered list ---------- */
-  const filtered = rooms.filter((u) =>
-    u.username.toLowerCase().includes(q.toLowerCase())
-  );
+  const filtered = rooms.filter((u) => u.username.toLowerCase().includes(q.toLowerCase()))
 
-  if (!user) return <p className="p-8">Loading…</p>;
+  if (!user) return <p className="p-8">Loading…</p>
 
   return (
     <div className="flex h-screen">
       {/* Left sidebar – only users chatted with */}
       <div className="w-full md:w-1/3 border-r bg-gray-50 p-3 space-y-2 overflow-y-auto">
         <input
-          placeholder="Search user..."
+          placeholder="Search user…"
           className="w-full px-3 py-2 border rounded"
           value={q}
           onChange={(e) => setQ(e.target.value)}
@@ -129,26 +188,16 @@ export default function ChatPage() {
           <a
             key={u._id}
             href={`/me/chat/${u._id}`}
-            className={`flex items-center space-x-3 p-2 rounded hover:bg-gray-200 ${
-              u._id === id ? "bg-blue-100" : ""
-            }`}
+            className={`flex items-center space-x-3 p-2 rounded hover:bg-gray-200 ${u._id === id ? "bg-blue-100" : ""}`}
           >
-            <Image
-              src={u.images || "/placeholder.svg"}
-              alt=""
-              width={40}
-              height={40}
-              className="rounded-full"
-            />
+            <Image src={u.images || "/placeholder.svg"} alt="" width={40} height={40} className="rounded-full" />
             <div>
               <p className="font-semibold">{u.username}</p>
               <p className="text-xs">{u.online ? "online" : "offline"}</p>
             </div>
           </a>
         ))}
-        {filtered.length === 0 && (
-          <p className="text-sm text-gray-500 px-2">No users found.</p>
-        )}
+        {filtered.length === 0 && <p className="text-sm text-gray-500 px-2">No users found.</p>}
       </div>
 
       {/* Chat box */}
@@ -156,22 +205,13 @@ export default function ChatPage() {
         {/* Header */}
         <div className="flex items-center justify-between border-b px-4 py-2">
           <div className="flex items-center space-x-3">
-            <Image
-              src={user.images || "/placeholder.svg"}
-              alt=""
-              width={36}
-              height={36}
-              className="rounded-full"
-            />
+            <Image src={user.images || "/placeholder.svg"} alt="" width={36} height={36} className="rounded-full" />
             <div>
               <p className="font-semibold">{user.username}</p>
               <p className="text-xs">{user.online ? "online" : "offline"}</p>
             </div>
           </div>
-          <button
-            onClick={() => setShowInfo(!showInfo)}
-            className="text-blue-600"
-          >
+          <button onClick={() => setShowInfo(!showInfo)} className="text-blue-600">
             Info
           </button>
         </div>
@@ -179,42 +219,58 @@ export default function ChatPage() {
         {/* Messages */}
         <div className="flex-1 overflow-y-auto p-4 space-y-2">
           {msgs.map((m) => (
-            <div
-              key={m._id}
-              className={`flex mb-1 ${m.from === id ? "justify-start" : "justify-end"}`}
-            >
+            <div key={m._id} className={`flex mb-1 ${m.from === id ? "justify-start" : "justify-end"}`}>
               <div
                 className={`max-w-xs px-3 py-2 rounded ${
-                  m.from === id
-                    ? "bg-gray-200 text-gray-900"
-                    : "bg-blue-500 text-white"
+                  m.from === id ? "bg-gray-200 text-gray-900" : "bg-blue-500 text-white"
                 } ${m.seen && m.from !== user._id ? "opacity-60" : ""}`}
               >
                 {m.type === "text" && <p>{m.body}</p>}
-                {m.type === "file" && (
+                {m.type === "file" &&
                   (() => {
                     try {
-                      const url = JSON.parse(m.body).fileUrl || m.body;
-                      const clean = url.replace(/<[^>]*>/g, ""); // strip <url> tags
+                      const url = JSON.parse(m.body).fileUrl || m.body
+                      const clean = url.replace(/<[^>]*>/g, "") // strip <url> tags
                       return /\.(jpg|jpeg|png|gif|webp)$/i.test(clean) ? (
-                        <Image width={300} height={300} src={clean || "/placeholder.svg"} className="rounded max-w-xs" alt="attachment" />
+                        <Image
+                          width={300}
+                          height={300}
+                          src={clean || "/placeholder.svg"}
+                          className="rounded max-w-xs"
+                          alt="attachment"
+                        />
                       ) : (
                         <a href={clean} target="_blank" rel="noreferrer">
                           📁 Attachment
                         </a>
-                      );
+                      )
                     } catch {
                       return (
                         <a href={m.body} target="_blank" rel="noreferrer">
                           📁 Attachment
                         </a>
-                      );
+                      )
                     }
-                  })()
-                )}
-                {(m.type === "post" || m.type === "page") && (
+                  })()}
+                {(m.type === "post" || m.type === "page") && m.postData && (
                   <div className="text-sm">
-                    <strong>{m.type}:</strong> {JSON.parse(m.body)._id}
+                    <strong>{m.type}:</strong>
+                    {m.postData.title === "Post Not Available" ? (
+                      <span>{m.postData.title}</span>
+                    ) : (
+                      <Link href={`/${m.type === "post" ? "blog" : ""}/${m.postData.slug}`} className="hover:underline">
+                        {m.postData.title}
+                      </Link>
+                    )}
+                    {m.postData.images && m.postData.title !== "Post Not Available" && (
+                      <Image
+                        src={m.postData.images}
+                        alt={m.postData.title}
+                        width={200}
+                        height={100}
+                        className="rounded mt-2"
+                      />
+                    )}
                   </div>
                 )}
               </div>
@@ -222,23 +278,6 @@ export default function ChatPage() {
           ))}
           <div ref={bottomRef} />
         </div>
-
-        {/* Post Preview */}
-        {postPreview && (
-          <div className="p-4 border-t">
-            <h4 className="font-semibold">Shared Post:</h4>
-            <p>{postPreview.title}</p>
-            {postPreview.images && (
-              <Image
-                src={postPreview.images || "/placeholder.svg"}
-                alt="Post Preview"
-                width={100}
-                height={75}
-                className="rounded mt-2"
-              />
-            )}
-          </div>
-        )}
 
         {/* Input bar */}
         <div className="border-t p-2 flex items-center space-x-2">
@@ -255,23 +294,20 @@ export default function ChatPage() {
               type="file"
               className="hidden"
               onChange={async (e) => {
-                const file = e.target.files?.[0];
-                if (!file) return;
-                const fd = new FormData();
-                fd.append("file", file);
+                const file = e.target.files?.[0]
+                if (!file) return
+                const fd = new FormData()
+                fd.append("file", file)
                 const res = await fetch("/api/me/chat/attachment", {
                   method: "POST",
                   body: fd,
-                });
-                const { url } = await res.json();
-                send("file", { fileUrl: url });
+                })
+                const { url } = await res.json()
+                send("file", { fileUrl: url })
               }}
             />
           </label>
-          <button
-            onClick={() => send()}
-            className="bg-blue-600 text-white px-4 py-1 rounded"
-          >
+          <button onClick={() => send()} className="bg-blue-600 text-white px-4 py-1 rounded">
             Send
           </button>
         </div>
@@ -295,5 +331,5 @@ export default function ChatPage() {
         </div>
       )}
     </div>
-  );
+  )
 }
