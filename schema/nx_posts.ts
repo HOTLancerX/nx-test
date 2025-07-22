@@ -22,6 +22,9 @@ export interface NxPost {
 }
 
 export interface NxPostInput {
+  _id?: ObjectId
+  user_id: ObjectId
+  date: Date
   slug: any
   title: string
   layout: string
