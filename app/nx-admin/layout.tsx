@@ -12,7 +12,7 @@ export default function RootLayout({
   const { settings } = useSettings()
   return (
     <PrivateLayout>
-      <div className="bg-gray-50 container mx-auto">
+      <div className="bg-white container mx-auto">
         <nav className="bg-white shadow">
           <div className="">
             <div className="flex justify-between h-16">

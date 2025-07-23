@@ -1,5 +1,4 @@
 //app/api/post/[id]/route.ts
-
 import { type NextRequest, NextResponse } from "next/server"
 import { connectToDatabase } from "@/lib/db"
 import { requireAdminAuth } from "@/lib/auth"

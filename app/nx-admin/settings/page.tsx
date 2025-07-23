@@ -19,6 +19,7 @@ export default function SettingsPage() {
   const [fetchLoading, setFetchLoading] = useState(true)
   const [settings, setSettings] = useState<Record<string, any>>({
     logo: "",
+    logo_text: "",
     siteurl: "",
     QnA: [] as QnAItem[],
     homepage: "", // New state for homepage layout ID
@@ -38,6 +39,7 @@ export default function SettingsPage() {
         const data = await settingsResponse.json()
         setSettings({
           logo: data.logo || "",
+          logo_text: data.logo_text || "",
           siteurl: data.siteurl || "",
           QnA: data.QnA || [],
           homepage: data.homepage || "", // Initialize homepage from fetched settings
@@ -112,9 +114,9 @@ export default function SettingsPage() {
   }
 
   return (
-    <div className="px-4 sm:px-6 lg:px-8">
-      <div className="md:grid md:grid-cols-3 md:gap-6">
-        <div className="md:col-span-1">
+    <div>
+      <div className="gap-6 block">
+        <div className="">
           <div className="px-4 sm:px-0">
             <h3 className="text-lg font-medium leading-6 text-gray-900">Site Settings</h3>
             <p className="mt-1 text-sm text-gray-600">
@@ -122,9 +124,9 @@ export default function SettingsPage() {
             </p>
           </div>
         </div>
-        <div className="mt-5 md:mt-0 md:col-span-2">
+        <div className="mt-5">
           <form onSubmit={handleSubmit}>
-            <div className="shadow sm:rounded-md sm:overflow-hidden">
+            <div>
               <div className="px-4 py-5 bg-white space-y-6 sm:p-6">
                 {/* Logo Setting */}
                 <div>
@@ -134,6 +136,17 @@ export default function SettingsPage() {
                     title="logo"
                     value={settings.logo || ""}
                     onChange={(e) => handleChange("logo", e.target.value)}
+                    className="mt-1 focus:ring-blue-500 focus:border-blue-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md px-3 py-2 border"
+                    placeholder="Enter site logo text"
+                  />
+                </div>
+                <div>
+                  <h1 className="text-base font-medium text-gray-900 mb-2">Logo</h1>
+                  <input
+                    type="text"
+                    title="logo Text"
+                    value={settings.logo_text || ""}
+                    onChange={(e) => handleChange("logo_text", e.target.value)}
                     className="mt-1 focus:ring-blue-500 focus:border-blue-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md px-3 py-2 border"
                     placeholder="Enter site logo text"
                   />

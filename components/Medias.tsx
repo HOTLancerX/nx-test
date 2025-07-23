@@ -2,11 +2,12 @@
 import { useState, useEffect } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { Dialog } from '@headlessui/react';
+import Image from 'next/image';
 
 interface MediasProps {
   multiple?: boolean;
   value?: string | string[];
-  onChange?: (e: { target: { value: string | string[] } }) => void;
+  onChange?: (value: string | string[]) => void;
   children?: React.ReactNode;
 }
 
@@ -26,7 +27,7 @@ export default function Medias({ multiple = false, value, onChange, children }: 
 
   useEffect(() => {
     if (value) {
-      setSelectedMedias(Array.isArray(value) ? value : [value]);
+      setSelectedMedias(Array.isArray(value) ? value : value ? [value] : []);
     }
   }, [value]);
 
@@ -63,11 +64,7 @@ export default function Medias({ multiple = false, value, onChange, children }: 
 
   const handleInsertMedia = () => {
     if (onChange) {
-      onChange({
-        target: {
-          value: multiple ? selectedMedias : selectedMedias[0] || ''
-        }
-      });
+      onChange(multiple ? selectedMedias : selectedMedias[0] || '');
     }
     setIsOpen(false);
   };
@@ -158,13 +155,9 @@ export default function Medias({ multiple = false, value, onChange, children }: 
 
         if (data.urls && data.urls.length > 0) {
           if (onChange) {
-            onChange({
-              target: {
-                value: multiple 
-                  ? [...selectedMedias, ...data.urls] 
-                  : data.urls[0] || ''
-              }
-            });
+            onChange(multiple 
+              ? [...selectedMedias, ...data.urls] 
+              : data.urls[0] || '');
           }
           setSelectedFiles([]);
           fetchMediaList();
@@ -183,27 +176,27 @@ export default function Medias({ multiple = false, value, onChange, children }: 
     }
   };
 
+  const handleRemoveMedia = (index: number) => {
+    const newMedias = selectedMedias.filter((_, i) => i !== index);
+    setSelectedMedias(newMedias);
+    onChange?.(multiple ? newMedias : newMedias[0] || '');
+  };
+
   return (
     <div className="space-y-2">
       {/* Preview area */}
       <div className="flex flex-wrap gap-2">
         {selectedMedias.map((url, index) => (
           <div key={index} className="relative group">
-            <img 
+            <Image
+              width={300}
+              height={300} 
               src={url} 
               alt={`Preview ${index}`}
               className="w-20 h-20 object-cover rounded border"
             />
             <button
-              onClick={() => {
-                const newMedias = selectedMedias.filter((_, i) => i !== index);
-                setSelectedMedias(newMedias);
-                onChange?.({
-                  target: {
-                    value: multiple ? newMedias : newMedias[0] || ''
-                  }
-                });
-              }}
+              onClick={() => handleRemoveMedia(index)}
               className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
             >
               ×
@@ -281,9 +274,11 @@ export default function Medias({ multiple = false, value, onChange, children }: 
                           }`}
                           onClick={() => handleSelectMedia(media.url)}
                         >
-                          <img 
+                          <Image 
                             src={media.url} 
                             alt={media.alt || ''}
+                            width={300}
+                            height={300}
                             className="w-full h-32 object-cover"
                           />
                           <div className="p-2 truncate text-sm">{media.title || 'Untitled'}</div>
