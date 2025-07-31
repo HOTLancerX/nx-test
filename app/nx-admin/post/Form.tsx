@@ -1,3 +1,4 @@
+//app/nx-admin/post/Form.tsx
 "use client"
 import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
@@ -65,6 +66,7 @@ export default function PostForm({ type, initialData, onSuccess }: PostFormProps
   const [layouts, setLayouts] = useState<Layout[]>([])
   const [selectedCategories, setSelectedCategories] = useState<string[]>([])
   const [loading, setLoading] = useState(false)
+  const [formLoading, setFormLoading] = useState(true) // New loading state for form initialization
   const [isSlugManuallyEdited, setIsSlugManuallyEdited] = useState(false)
 
   const [formData, setFormData] = useState<FormData>({
@@ -83,58 +85,62 @@ export default function PostForm({ type, initialData, onSuccess }: PostFormProps
     }
   })
 
-  // Initialize form data
+  // Initialize form data and fetch dependencies in parallel
   useEffect(() => {
-    if (initialData) {
-      setFormData({
-        title: initialData.title || "",
-        slug: initialData.slug || "",
-        content: initialData.content || "",
-        status: initialData.status || "draft",
-        images: initialData.images || "",
-        gallery: initialData.gallery || [],
-        layout: initialData.layout || "",
-        type,
-        taxonomy: initialData.taxonomy?.map(t => ({ 
-          term_id: t.term_id, 
-          taxonomy: `${type}_category` 
-        })) || [],
-        meta: {
-          hello: initialData.meta?.hello || "",
-          rsslink: initialData.meta?.rsslink || ""
+    const initializeForm = async () => {
+      try {
+        // Fetch dependencies in parallel
+        const [categoriesResponse, layoutsResponse] = await Promise.all([
+          type === "post" ? fetch("/api/category?type=post_category", { credentials: "include" }) : Promise.resolve(null),
+          type === "page" ? fetch("/api/layout", { credentials: "include" }) : Promise.resolve(null)
+        ])
+
+        // Process categories if needed
+        if (type === "post" && categoriesResponse) {
+          const categoriesData = await categoriesResponse.json()
+          const nestedCategories = buildNestedCategories(categoriesData.categories || [])
+          setCategories(nestedCategories)
         }
-      })
 
-      setSelectedCategories(initialData.taxonomy?.map(t => t.term_id) || [])
-      if (initialData.slug) setIsSlugManuallyEdited(true)
+        // Process layouts if needed
+        if (type === "page" && layoutsResponse) {
+          const layoutsData = await layoutsResponse.json()
+          setLayouts(layoutsData.layouts || [])
+        }
+
+        // Set initial data if provided
+        if (initialData) {
+          setFormData({
+            title: initialData.title || "",
+            slug: initialData.slug || "",
+            content: initialData.content || "",
+            status: initialData.status || "draft",
+            images: initialData.images || "",
+            gallery: initialData.gallery || [],
+            layout: initialData.layout || "",
+            type,
+            taxonomy: initialData.taxonomy?.map(t => ({ 
+              term_id: t.term_id, 
+              taxonomy: `${type}_category` 
+            })) || [],
+            meta: {
+              hello: initialData.meta?.hello || "",
+              rsslink: initialData.meta?.rsslink || ""
+            }
+          })
+
+          setSelectedCategories(initialData.taxonomy?.map(t => t.term_id) || [])
+          if (initialData.slug) setIsSlugManuallyEdited(true)
+        }
+      } catch (error) {
+        console.error("Failed to initialize form", error)
+      } finally {
+        setFormLoading(false)
+      }
     }
 
-    if (type === "post") fetchCategories()
-    if (type === "page") fetchLayouts()
+    initializeForm()
   }, [initialData, type])
-
-  const fetchCategories = async () => {
-    try {
-      const res = await fetch("/api/category?type=post_category", { 
-        credentials: "include" 
-      })
-      const data = await res.json()
-      const nestedCategories = buildNestedCategories(data.categories || [])
-      setCategories(nestedCategories)
-    } catch (error) {
-      console.error("Failed to load categories", error)
-    }
-  }
-
-  const fetchLayouts = async () => {
-    try {
-      const res = await fetch("/api/layout", { credentials: "include" })
-      const data = await res.json()
-      setLayouts(data.layouts || [])
-    } catch (error) {
-      console.error("Failed to load layouts", error)
-    }
-  }
 
   const buildNestedCategories = (
     categories: Category[],
@@ -215,6 +221,10 @@ export default function PostForm({ type, initialData, onSuccess }: PostFormProps
     } finally {
       setLoading(false)
     }
+  }
+
+  if (formLoading) {
+    return <div className="flex justify-center items-center h-64">Loading form data...</div>
   }
 
   return (

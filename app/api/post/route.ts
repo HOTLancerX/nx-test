@@ -24,38 +24,40 @@ export async function GET(request: Request) {
       filter["taxonomy.term_id"] = new ObjectId(categoryId)
     }
 
-    const posts = await db.collection("nx_posts")
+    const posts = await db
+      .collection("nx_posts")
       .find(filter)
       .sort({ date: -1 })
       .skip(skip)
       .limit(limit)
       .toArray()
 
-    // Fetch meta data for each post
-    const postsWithMeta = await Promise.all(posts.map(async (post) => {
-      const meta = await db.collection<NxPostMeta>("nx_posts_meta").find({ 
-        nx_posts: post._id 
-      }).toArray()
+    const postsWithMeta = await Promise.all(
+      posts.map(async (post) => {
+        const meta = await db
+          .collection<NxPostMeta>("nx_posts_meta")
+          .find({ nx_posts: post._id })
+          .toArray()
 
-      // Convert meta array to object
-      const metaData = meta.reduce((acc, item) => {
-        acc[item.title] = item.content
-        return acc
-      }, {} as Record<string, string>)
+        const metaData = meta.reduce<Record<string, string>>((acc, item) => {
+          acc[item.title] = item.content
+          return acc
+        }, {})
 
-      return {
-        ...post,
-        _id: post._id.toString(),
-        user_id: post.user_id.toString(),
-        taxonomy: Array.isArray(post.taxonomy)
-          ? post.taxonomy.map((tax: any) => ({
-              ...tax,
-              term_id: tax.term_id.toString(),
-            }))
-          : [],
-        meta: metaData
-      }
-    }))
+        return {
+          ...post,
+          _id: post._id.toString(),
+          user_id: post.user_id.toString(),
+          taxonomy: Array.isArray(post.taxonomy)
+            ? post.taxonomy.map((tax: any) => ({
+                ...tax,
+                term_id: tax.term_id.toString(),
+              }))
+            : [],
+          meta: metaData,
+        }
+      })
+    )
 
     const totalPosts = await db.collection("nx_posts").countDocuments(filter)
     const totalPages = Math.ceil(totalPosts / limit)
@@ -78,9 +80,9 @@ export async function GET(request: Request) {
 export async function POST(request: Request) {
   try {
     const session = await requireAdminAuth()
-    const postData: NxPostInput & { meta?: Record<string, string> } = await request.json()
+    const postData: NxPostInput & { meta?: Record<string, string> } =
+      await request.json()
 
-    // Validation
     if (!postData.title) {
       return NextResponse.json(
         { message: "Title is required" },
@@ -90,7 +92,6 @@ export async function POST(request: Request) {
 
     const { db } = await connectToDatabase()
 
-    // Generate slug if not provided
     let slug = postData.slug
     if (!slug) {
       slug = postData.title
@@ -100,7 +101,6 @@ export async function POST(request: Request) {
         .replace(/(^-|-$)/g, "")
     }
 
-    // Check for existing slug
     const existingPost = await db.collection("nx_posts").findOne({ slug })
     if (existingPost) {
       return NextResponse.json(
@@ -109,7 +109,6 @@ export async function POST(request: Request) {
       )
     }
 
-    // Prepare post document
     const newPost = {
       ...postData,
       user_id: new ObjectId(session.id),
@@ -118,34 +117,29 @@ export async function POST(request: Request) {
       slug,
       images: postData.images || "",
       gallery: postData.gallery || [],
-      taxonomy: postData.taxonomy?.map(tax => ({
-        term_id: new ObjectId(tax.term_id),
-        taxonomy: tax.taxonomy,
-      })) || [],
+      taxonomy:
+        postData.taxonomy?.map((tax) => ({
+          term_id: new ObjectId(tax.term_id),
+          taxonomy: tax.taxonomy,
+        })) || [],
     }
 
-    // Remove meta before inserting post
     const { meta, ...postWithoutMeta } = newPost
-
-    // Insert main post
     const result = await db.collection("nx_posts").insertOne(postWithoutMeta)
     const postId = result.insertedId
 
-    // Insert meta data if exists
-    if (meta && Object.keys(meta).length > 0) {
-      const metaToInsert = Object.entries(meta)
-        .filter(([_, value]) => value !== undefined && value !== null && value !== '')
+    // 🔧  full meta save
+    if (meta && Object.keys(meta).length) {
+      const rows = Object.entries(meta)
+        .filter(([, v]) => v != null && v !== "")
         .map(([title, content]) => ({
           nx_posts: postId,
           title,
           content,
           createdAt: new Date(),
-          updatedAt: new Date()
+          updatedAt: new Date(),
         }))
-
-      if (metaToInsert.length > 0) {
-        await db.collection("nx_posts_meta").insertMany(metaToInsert)
-      }
+      if (rows.length) await db.collection("nx_posts_meta").insertMany(rows)
     }
 
     return NextResponse.json({
@@ -166,7 +160,7 @@ export async function PUT(request: Request) {
     await requireAdminAuth()
     const { searchParams } = new URL(request.url)
     const postId = searchParams.get("id")
-    
+
     if (!postId) {
       return NextResponse.json(
         { message: "Post ID is required" },
@@ -174,50 +168,45 @@ export async function PUT(request: Request) {
       )
     }
 
-    const postData: NxPostInput & { meta?: Record<string, string> } = await request.json()
+    const postData: NxPostInput & { meta?: Record<string, string> } =
+      await request.json()
     const { db } = await connectToDatabase()
 
-    // Update main post data
-    const updateResult = await db.collection("nx_posts").updateOne(
+    await db.collection("nx_posts").updateOne(
       { _id: new ObjectId(postId) },
       {
         $set: {
           ...postData,
           modified: new Date(),
-          taxonomy: postData.taxonomy?.map(tax => ({
-            term_id: new ObjectId(tax.term_id),
-            taxonomy: tax.taxonomy,
-          })) || [],
-        }
+          taxonomy:
+            postData.taxonomy?.map((tax) => ({
+              term_id: new ObjectId(tax.term_id),
+              taxonomy: tax.taxonomy,
+            })) || [],
+        },
       }
     )
 
-    // Handle meta data updates
-    if (postData.meta) {
-      // First delete all existing meta for this post
-      await db.collection("nx_posts_meta").deleteMany({ 
-        nx_posts: new ObjectId(postId) 
-      })
+    // 🔧  replace all meta rows for this post
+    await db.collection("nx_posts_meta").deleteMany({
+      nx_posts: new ObjectId(postId),
+    })
 
-      // Then insert the new meta data
-      const metaToInsert = Object.entries(postData.meta)
-        .filter(([_, value]) => value !== undefined && value !== null && value !== '')
+    if (postData.meta && Object.keys(postData.meta).length) {
+      const rows = Object.entries(postData.meta)
+        .filter(([, v]) => v != null && v !== "")
         .map(([title, content]) => ({
           nx_posts: new ObjectId(postId),
           title,
           content,
           createdAt: new Date(),
-          updatedAt: new Date()
+          updatedAt: new Date(),
         }))
-
-      if (metaToInsert.length > 0) {
-        await db.collection("nx_posts_meta").insertMany(metaToInsert)
-      }
+      if (rows.length) await db.collection("nx_posts_meta").insertMany(rows)
     }
 
     return NextResponse.json({
       message: "Post updated successfully",
-      modifiedCount: updateResult.modifiedCount
     })
   } catch (error) {
     console.error("Error updating post:", error)
